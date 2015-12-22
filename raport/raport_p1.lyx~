@@ -90,32 +90,38 @@ Introduction
 
 \begin_layout Standard
 Ability to design instrumentation of any type of experiment is crucial to
- both cost effectiveness and robustness of the experimental setup.
+ cost, effectiveness and robustness of the experimental setup.
  Formal procedure, that will 
 \shape italic
 a priori
 \shape default
  provide instrumentation guidelines, like where to measure pressure on an
  airfoil was the main subject of this work.
- 
-\end_layout
-
-\begin_layout Standard
-Naive instrumentation is 
+ Growing computational power allows to predict phenomenon that is being
+ measured and perform optimization to obtain the best possible instrumentation
+ strategy.
+ This type of problems is the subject of optimal experimental design(OED).
+ Classical approach to control quality of experimental results are based
+ on statistical criteria and have been treated widely in literature 
 \begin_inset CommandInset citation
 LatexCommand cite
-key "alexanderian_-optimal_2014,huan_simulation-based_2013,stuart_inverse_2010"
+key "ucinski_optimal_2004,pukelsheim_optimal_1993,fedorov_model-oriented_1997,_optimum_1992"
 
 \end_inset
 
-
+.
+ In the following work proper orthogonal decomposition is being used as
+ surrogate model for optimization and reconstruction purposes, which improves
+ numerical stability of the scheme and allows to construct efficient algorithm.
+ Proposed approach was validated using virtual experiment.
+ Virtual experiment was 
 \end_layout
 
 \begin_layout Standard
-Now will be presented simple example, which will illustrate basic idea behind
- instrumentation strategy implemented in proposed method.
- Assume that some physical phenomenon could be described by following linear
- model
+Simple example will be presented here before detailed description of methodology.
+ This will illustrate basic idea behind optimal experiment design.
+ Assume that some physical quantity could be measured and described by following
+ linear model
 \begin_inset Formula 
 \[
 y=a_{0}+a_{1}x
@@ -169,7 +175,7 @@ To select sensor locations in the optimal way the influence of random errors
  Therefore some objective function is required which will allow to perform
  optimization in terms of estimated parameters uncertainty.
  Suitable criterion for this purpose is one of statistical criteria, e.g.
- A-optimality.
+ A-optimality or D-optimality.
  Statistical criteria aims to minimize variance of estimator, which in case
  of several model parameters takes matrix form.
  The A-optimality criterion is formulated as seeking for minimal trace of
@@ -177,7 +183,7 @@ To select sensor locations in the optimal way the influence of random errors
  is minimized, see 
 \begin_inset CommandInset citation
 LatexCommand cite
-key "ucinski_optimal_2004"
+key "ucinski_optimal_2004,_optimum_1992"
 
 \end_inset
 
@@ -231,12 +237,32 @@ Var(\hat{a_{1})}=\frac{1}{\Delta x^{2}}[Var(y_{2})+Var(y_{1})]=\frac{2}{\Delta x
 It is clear that variance of estimator is the smallest when distance between
  sensors is the biggest.
  This is very intuitive, because line slop is less affected by small changes
- if constructing points are far away from each other.
+ of value in constructing points are spread far away from each other.
  
+\end_layout
+
+\begin_layout Standard
+In Section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Methodology"
+
+\end_inset
+
+ is presented description of proposed method and final algorithm used in
+ this work.
+ In Section and have been posted 
 \end_layout
 
 \begin_layout Section
 Methodology
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Methodology"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsection
@@ -244,7 +270,8 @@ Covariance-minimizing instrumentation strategy
 \end_layout
 
 \begin_layout Standard
-The main idea behind presented instrumentation strategy is based on A-criterion.
+The main idea behind presented instrumentation strategy, as it was said
+ before, is based on A-criterion.
  Assuming, that observed phenomenon is described by linear model 
 \begin_inset Formula 
 \[
@@ -408,15 +435,7 @@ The A-criterion in this case is formulated as choosing
 \begin_inset Formula $(W_{:,m}\Sigma^{-1}W_{:,m}^{T})^{-1}$
 \end_inset
 
- is minimal (the mean axis length of the uncertainty ellipsoid is minimized,
- see 
-\begin_inset CommandInset citation
-LatexCommand cite
-key "ucinski_optimal_2004"
-
-\end_inset
-
-).
+ is minimal.
  
 \end_layout
 
@@ -904,6 +923,13 @@ which will ensure numerical stability of the scheme.
 
 \begin_layout Section
 Test cases and results
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Test-cases-and"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsection
@@ -952,7 +978,7 @@ reference "fig:The-number-of-modes-V3"
 \end_inset
 
 .
- It could be sen, that even 10 modes (in this case) should give reasonable
+ It could be seen, that even 10 modes (in this case) should give reasonable
  reconstruction of the flow properties.
 \end_layout
 
@@ -1444,11 +1470,11 @@ sideways false
 status collapsed
 
 \begin_layout Plain Layout
+\align center
 \begin_inset Graphics
 	filename ../optimized_naca_multisweapt/MA_0.2_alp_2.2_stdderiv.png
 	lyxscale 25
 	width 80text%
-	rotateOrigin center
 
 \end_inset
 
@@ -1456,11 +1482,11 @@ status collapsed
 \end_layout
 
 \begin_layout Plain Layout
+\align center
 \begin_inset Graphics
 	filename ../optimized_naca_multisweapt/MA_0.7_alp_2.2_stdderiv.png
 	lyxscale 25
 	width 80text%
-	rotateOrigin center
 
 \end_inset
 
@@ -1793,7 +1819,7 @@ name "fig:pMa0.7-1-1"
 \begin_inset Float figure
 wide false
 sideways false
-status open
+status collapsed
 
 \begin_layout Plain Layout
 \begin_inset Graphics
@@ -1828,6 +1854,7 @@ sideways false
 status open
 
 \begin_layout Plain Layout
+\align center
 \begin_inset Graphics
 	filename ../optimized_cascasde_1/small_velocity2_rec.png
 	lyxscale 25
@@ -1839,6 +1866,7 @@ status open
 \end_layout
 
 \begin_layout Plain Layout
+\align center
 \begin_inset Graphics
 	filename ../optimized_cascasde_1/small_velocity2.png
 	lyxscale 25
@@ -1881,6 +1909,7 @@ sideways false
 status open
 
 \begin_layout Plain Layout
+\align center
 \begin_inset Graphics
 	filename ../optimized_cascasde_1/small_density_rec.png
 	lyxscale 25
@@ -1892,6 +1921,7 @@ status open
 \end_layout
 
 \begin_layout Plain Layout
+\align center
 \begin_inset Graphics
 	filename ../optimized_cascasde_1/small_density.png
 	lyxscale 25

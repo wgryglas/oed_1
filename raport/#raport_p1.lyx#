@@ -142,8 +142,8 @@ real
 \end_layout
 
 \begin_layout Standard
-Simple example will be presented before detailed description of methodology.
- This will illustrate basic idea behind optimal instrumentation.
+Simple example will be presented now before detailed description of methodology.
+ This will illustrate basic idea behind optimal experiment design.
  Assume that some physical quantity could be measured and described by following
  linear model
 \begin_inset Formula 
