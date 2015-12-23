@@ -91,16 +91,17 @@ Introduction
 \begin_layout Standard
 Ability to design instrumentation of any type of experiment is crucial to
  cost, effectiveness and robustness of the experimental setup.
+ Growing computational power allows to predict phenomenon that is being
+ measured.
+ Obtained information can be used to perform optimization and design the
+ best possible experiment.
  Formal procedure, that will 
 \shape italic
 a priori
 \shape default
  provide instrumentation guidelines, like where to measure pressure on an
  airfoil was the main subject of this work.
- Growing computational power allows to predict phenomenon that is being
- measured and perform optimization to obtain the best possible instrumentation
- strategy.
- This type of problems is the subject of optimal experimental design(OED).
+ This type of problems refers to so called optimal experimental design(OED).
  Classical approach to control quality of experimental results are based
  on statistical criteria and have been treated widely in literature 
 \begin_inset CommandInset citation
@@ -110,14 +111,15 @@ key "ucinski_optimal_2004,pukelsheim_optimal_1993,fedorov_model-oriented_1997,_o
 \end_inset
 
 .
- In the following work proper orthogonal decomposition(POD) is being used
- as surrogate model for optimization and reconstruction purposes, which
- improves numerical stability of the scheme and allows to construct efficient
- and general algorithm.
- Proposed approach was validated using virtual experiment.
+ Similar approach was adopted in the following work.
+ Additionally proper orthogonal decomposition(POD) was used as surrogate
+ model which is required for optimization and reconstruction purposes.
+ POD method in this case improves numerical stability of the proposed scheme
+ and allows to construct efficient and generic algorithm.
+ Presented approach was validated using virtual experiment.
  The experiment consisted of results from numerical simulation based on
  high and low density meshes.
- High density mesh represented 
+ High density mesh stands for 
 \begin_inset Quotes eld
 \end_inset
 
@@ -125,9 +127,10 @@ real
 \begin_inset Quotes erd
 \end_inset
 
- experimental data, and coarse mesh was used for POD and thereby for instrumenta
-tion positions optimization.
- The aim was to reconstruct pressure profile by using 
+ experimental data, and coarse mesh is being used for POD and thereby for
+ measurement locations optimization.
+ The goal was to reconstruct pressure profile in the best possible way from
+ 
 \begin_inset Quotes eld
 \end_inset
 
@@ -135,17 +138,20 @@ real
 \begin_inset Quotes erd
 \end_inset
 
- data applied to the optimal sensors positions.
- The results ware then compared to reconstruction based on points equally
- distributed along profile.
+ data applied to the sensors positions.
+ The results obtained from optimal positions ware than compared with a profile
+ reconstructed from equally distributed points along the profile.
  
 \end_layout
 
 \begin_layout Standard
-Simple example will be presented now before detailed description of methodology.
- This will illustrate basic idea behind optimal experiment design.
- Assume that some physical quantity could be measured and described by following
- linear model
+To illustrate basic idea behind optimal instrumentation simple example will
+ be presented before detailed description of proposed methodology.
+ Assume that some physical quantity 
+\begin_inset Formula $y$
+\end_inset
+
+ could be measured and described by following linear model
 \begin_inset Formula 
 \[
 y=a_{0}+a_{1}x
@@ -163,8 +169,8 @@ The aim of measurement is to estimate
 \end_inset
 
 .
- The question which arises is how to choose these locations in the best
- possible way.
+ The question which arises is how to choose optimal locations for these
+ sensors so that the result will be the most accurate.
  Due to fact that measurement will be affected by some random error result
  of the observation can be described as
 \begin_inset Formula 
@@ -191,8 +197,8 @@ a_{1}
 
 \end_inset
 
-To select sensor locations in the optimal way the influence of random errors
- on estimated parameters 
+To select sensor locations optimally the influence of random errors on estimated
+ parameters 
 \begin_inset Formula $a_{0},a_{1}$
 \end_inset
 
@@ -242,16 +248,15 @@ and its minimal value corresponds to
 .
  As the result optimal sensor positions for this case is the beginning and
  the end of specified range.
- Assuming that measurement error is not correlated and have constant variance
- 
+ Assuming that measurement error have constant variance 
 \begin_inset Formula $\sigma^{2}$
 \end_inset
 
-, then variance of estimator 
+ and is not correlated then the variance of estimator 
 \begin_inset Formula $\hat{a_{1}}$
 \end_inset
 
- can be easy computed to check the result 
+ can be easy computed for this case
 \begin_inset Formula 
 \[
 Var(\hat{a_{1})}=\frac{1}{\Delta x^{2}}[Var(y_{2})+Var(y_{1})]=\frac{2}{\Delta x^{2}}\sigma^{2}
@@ -260,9 +265,11 @@ Var(\hat{a_{1})}=\frac{1}{\Delta x^{2}}[Var(y_{2})+Var(y_{1})]=\frac{2}{\Delta x
 \end_inset
 
 It is clear that variance of estimator is minimal when distance between
- sensors is the biggest one.
- This is very intuitive, because line slop is less affected by small changes
- of value in constructing points are spread far away from each other.
+ sensors is the biggest one what confirms the result derived from A-optimality
+ criterion.
+ For this simple example the result is very intuitive, because line slop
+ is less affected by small changes of value in constructing points are spread
+ far away from each other.
  
 \end_layout
 
@@ -284,9 +291,9 @@ reference "sec:Test-cases-and"
 \end_inset
 
  will be presented validation of instrumentation strategy using virtual
- experiment.
- In first case validation was performed on NACA 2012 airfoil and in second
- case with 2D WUT cascade.
+ experiments.
+ In the first case validation was performed on NACA 2012 airfoil and in
+ the second with 2D WUT cascade.
  
 \end_layout
 
@@ -480,7 +487,9 @@ Reduced order model based on POD
 \end_layout
 
 \begin_layout Standard
-To build linear model 
+It is clear that before covariance-minimizing instrumentation strategy can
+ be applied some linear model is required.
+ To build model of the form 
 \begin_inset Formula 
 \[
 V=W\beta
@@ -497,7 +506,7 @@ base matrix
 \begin_inset Formula $W$
 \end_inset
 
- is build from orthogonal vectors 
+ is constructed using orthogonal vectors 
 \begin_inset Formula $W_{m,:}$
 \end_inset
 
@@ -662,7 +671,14 @@ The A-criterion requires, that trace of information matrix inverse in minimal.
 \end_inset
 
  available mesh point, for example all mesh point on a turbine blade.
- The procedure below was found suitable for that task.
+ The procedure given in Algorithm 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "procedure"
+
+\end_inset
+
+ was found suitable for that task.
 \begin_inset Float algorithm
 placement h
 wide false
@@ -675,6 +691,13 @@ status collapsed
 \begin_layout Plain Layout
 Optimizer procedure
 \end_layout
+
+\end_inset
+
+
+\begin_inset CommandInset label
+LatexCommand label
+name "procedure"
 
 \end_inset
 

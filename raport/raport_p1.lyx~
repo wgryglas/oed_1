@@ -110,16 +110,40 @@ key "ucinski_optimal_2004,pukelsheim_optimal_1993,fedorov_model-oriented_1997,_o
 \end_inset
 
 .
- In the following work proper orthogonal decomposition is being used as
- surrogate model for optimization and reconstruction purposes, which improves
- numerical stability of the scheme and allows to construct efficient algorithm.
+ In the following work proper orthogonal decomposition(POD) is being used
+ as surrogate model for optimization and reconstruction purposes, which
+ improves numerical stability of the scheme and allows to construct efficient
+ and general algorithm.
  Proposed approach was validated using virtual experiment.
- Virtual experiment was 
+ The experiment consisted of results from numerical simulation based on
+ high and low density meshes.
+ High density mesh represented 
+\begin_inset Quotes eld
+\end_inset
+
+real
+\begin_inset Quotes erd
+\end_inset
+
+ experimental data, and coarse mesh was used for POD and thereby for instrumenta
+tion positions optimization.
+ The aim was to reconstruct pressure profile by using 
+\begin_inset Quotes eld
+\end_inset
+
+real
+\begin_inset Quotes erd
+\end_inset
+
+ data applied to the optimal sensors positions.
+ The results ware then compared to reconstruction based on points equally
+ distributed along profile.
+ 
 \end_layout
 
 \begin_layout Standard
-Simple example will be presented here before detailed description of methodology.
- This will illustrate basic idea behind optimal experiment design.
+Simple example will be presented before detailed description of methodology.
+ This will illustrate basic idea behind optimal instrumentation.
  Assume that some physical quantity could be measured and described by following
  linear model
 \begin_inset Formula 
@@ -140,8 +164,9 @@ The aim of measurement is to estimate
 
 .
  The question which arises is how to choose these locations in the best
- possible way? Due to fact that measurement will be affected by some random
- error result of the observation can be described as
+ possible way.
+ Due to fact that measurement will be affected by some random error result
+ of the observation can be described as
 \begin_inset Formula 
 \[
 Y\approx X\cdot A
@@ -234,8 +259,8 @@ Var(\hat{a_{1})}=\frac{1}{\Delta x^{2}}[Var(y_{2})+Var(y_{1})]=\frac{2}{\Delta x
 
 \end_inset
 
-It is clear that variance of estimator is the smallest when distance between
- sensors is the biggest.
+It is clear that variance of estimator is minimal when distance between
+ sensors is the biggest one.
  This is very intuitive, because line slop is less affected by small changes
  of value in constructing points are spread far away from each other.
  
@@ -249,9 +274,20 @@ reference "sec:Methodology"
 
 \end_inset
 
- is presented description of proposed method and final algorithm used in
- this work.
- In Section and have been posted 
+ will be presented description of method and final algorithm used to perform
+ validation of proposed approach.
+ In Section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Test-cases-and"
+
+\end_inset
+
+ will be presented validation of instrumentation strategy using virtual
+ experiment.
+ In first case validation was performed on NACA 2012 airfoil and in second
+ case with 2D WUT cascade.
+ 
 \end_layout
 
 \begin_layout Section
@@ -571,7 +607,7 @@ d as fairly standard numerical tool, present in number of code libraries.
 \begin_inset Float figure
 wide false
 sideways false
-status open
+status collapsed
 
 \begin_layout Plain Layout
 \align center
@@ -631,7 +667,7 @@ The A-criterion requires, that trace of information matrix inverse in minimal.
 placement h
 wide false
 sideways false
-status open
+status collapsed
 
 \begin_layout Plain Layout
 \begin_inset Caption Standard
@@ -946,7 +982,7 @@ To evaluate method performance and robustness, the virtual instrumentation
  of attack from 1.2 to 3.2 degrees.
  The, the POD decomposition was performed on obtained data.
  To reduce number of modes in consideration, the maximum difference between
- full solution and the one reconstructed on limited number of modes was
+ full solution and the reconstructed one on limited number of modes was
  then calculated.
  Results of those computation are presented in Fig.
  
