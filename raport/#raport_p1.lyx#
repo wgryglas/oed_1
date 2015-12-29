@@ -101,7 +101,7 @@ a priori
 \shape default
  provide instrumentation guidelines, like where to measure pressure on an
  airfoil was the main subject of this work.
- This type of problems refers to so called optimal experimental design(OED).
+ This type of problems refers to so-called optimal experimental design(OED).
  Classical approach to control quality of experimental results are based
  on statistical criteria and have been treated widely in literature 
 \begin_inset CommandInset citation
@@ -111,9 +111,21 @@ key "ucinski_optimal_2004,pukelsheim_optimal_1993,fedorov_model-oriented_1997,_o
 \end_inset
 
 .
- Similar approach was adopted in the following work.
+ Optimization of measurement locations leads to covariance minimization
+ as described for example in Chapter 2.3 of 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "ucinski_optimal_2004"
+
+\end_inset
+
+.
+ This approach was adopted in the following work.
+ A-criterion was chosen as objective function for optimization purpouse.
  Additionally proper orthogonal decomposition(POD) was used as surrogate
- model which is required for optimization and reconstruction purposes.
+ model.
+ The model was required to construct covariance matrix and reconstruct final
+ results.
  POD method in this case improves numerical stability of the proposed scheme
  and allows to construct efficient and generic algorithm.
  Presented approach was validated using virtual experiment.
@@ -547,7 +559,7 @@ In order to obtain matrix
 
  is number of nodes in numerical solution.
  Then, proper orthogonal decomposition is performed, using “method of snapshots”
-, as described in 
+, as described in Section 3.2 of 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "holmes_turbulence_2012"
