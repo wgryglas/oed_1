@@ -121,7 +121,7 @@ key "ucinski_optimal_2004"
 
 .
  This approach was adopted in the following work.
- A-criterion was chosen as objective function for optimization purpose.
+ A-criterion was chosen as objective function for optimization.
  Additionally proper orthogonal decomposition(POD) was used as surrogate
  model.
  The model was required to construct covariance matrix and reconstruct final

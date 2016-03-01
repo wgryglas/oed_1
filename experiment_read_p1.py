@@ -28,11 +28,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import re
 
-import nlopt
+# import nlopt
 
 
 
-base = '/home/michal/avio/naca0012/single_sweapt/'
+base = '/home/wgryglas/python/avio/naca0012/single_sweapt/'
 
 fname0=base+'input/fin_%d.dat'
 ofname0=base+'decomposed/fin_%d_modes_%d.dat'

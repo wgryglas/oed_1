@@ -32,12 +32,12 @@ import nlopt
 
 
 
-#base = '/home/mdzikowski/avio/naca0012/single_sweapt'
-#base = '/home/michal/avio/naca0012/single_sweapt/'
-base = '/home/michal/avio/naca0012/multi_sweapt_1/mach.20/'
+#base = '/home/wgryglas/python/avio/naca0012/single_sweapt'
+#base = '/home/wgryglas/python/avio/naca0012/single_sweapt/'
+base = '/home/wgryglas/python/avio/naca0012/multi_sweapt_1/mach.20/'
 NT = 10
 
-#base = '/home/michal/avio/naca0012/multi_sweapt_1/all/'
+#base = '/home/wgryglas/python/avio/naca0012/multi_sweapt_1/all/'
 #NT = 120
 
 num_modes = 3
@@ -54,8 +54,6 @@ mnpzfname0=base+'modes/mode_%d.npz'
 
 bfile=base+'boundary.dat'
 optimofile=base+'optim_data.npz'
-
-
 
 
 vectors = list()

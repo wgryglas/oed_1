@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Sat Aug  8 17:35:21 2015
-
-@author: michal
-"""
 
 class require:
     def __init__(self, *args, **kargs):
@@ -14,6 +9,8 @@ class require:
     def __call__(self, func):
         return func
     
+import sys
+sys.path.append('/home/wgryglas/python')
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -27,12 +24,11 @@ from scipy.interpolate import UnivariateSpline
 
 
 
-
-dir0 = '/home/michal/avio/naca0012/multi_sweapt_1/all/'
-#dir0 = '/home/michal/avio/naca0012/multi_sweapt_1/mach.20/'
+dir0 = '/home/wgryglas/python/avio/naca0012/multi_sweapt_1/all/'
+#dir0 = '/home/wgryglas/python/avio/naca0012/multi_sweapt_1/mach.20/'
 fname0 = dir0+'input/fin_%d.dat'
-geometryFile = '/home/michal/avio/naca0012/multi_sweapt_1/all/name.get'
-boundaryFile = '/home/michal/avio/naca0012/multi_sweapt_1/all/boundary.dat'
+geometryFile = '/home/wgryglas/python/avio/naca0012/multi_sweapt_1/all/name.get'
+boundaryFile = '/home/wgryglas/python/avio/naca0012/multi_sweapt_1/all/boundary.dat'
 fpoints=dir0+'designed_points'
 num_files = 121
 

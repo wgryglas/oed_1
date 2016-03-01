@@ -67,9 +67,9 @@
 \papersides 1
 \paperpagestyle default
 \tracking_changes false
-\output_changes false
 \html_math_output 0
 \html_css_as_file 0
+\output_changes false
 \html_be_strict false
 \end_header
 
@@ -151,7 +151,7 @@ real
 \end_inset
 
  data applied to the sensors positions.
- The results obtained from optimal positions ware than compared with a profile
+ The results obtained from optimal positions were then compared with a profile
  reconstructed from equally distributed points along the profile.
  
 \end_layout

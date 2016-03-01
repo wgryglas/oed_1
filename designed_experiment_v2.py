@@ -1,10 +1,26 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Sat Aug  8 17:35:21 2015
 
-@author: michal
-"""
+#==============================================================================
+# IMPORT LOCAL TOOLS IF PROJECT IS IN DIFFERENT LOCATION
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+import matplotlib.pyplot as plt
+import numpy as np
+import bearded_octo_wookie.RED.RedReader as RedReader
+import bearded_octo_wookie.RED.POD as POD
+from scipy.spatial import cKDTree
+from scipy.interpolate import interp1d 
+from scipy.interpolate import UnivariateSpline
+from wg.tools.function import fixargument
 
+#==============================================================================
+# CONFIGURE FIGURES
+#------------------------------------------------------------------------------
+plt.figure = fixargument(plt.figure, figsize=(20, 10))
+
+#==============================================================================
+# DEFINE FUNCTIONS DECORATORS
+#------------------------------------------------------------------------------
 class require:
     def __init__(self, *args, **kargs):
         for i,a in enumerate(args):
@@ -13,19 +29,12 @@ class require:
         pass
     def __call__(self, func):
         return func
-    
+#==============================================================================
 
-import matplotlib.pyplot as plt
-import numpy as np
-import bearded_octo_wookie.RED.RedReader as RedReader
-import bearded_octo_wookie.RED.POD as POD
-from scipy.spatial import cKDTree
-from scipy.interpolate import interp1d 
-from scipy.interpolate import UnivariateSpline
 
-fname0 = '/home/michal/avio/naca0012/multi_sweapt_1/mach.65/input/fin_%d.dat'
-geometryFile = '/home/michal/avio/naca0012/multi_sweapt_1/all/name.get'
-boundaryFile = '/home/michal/avio/naca0012/multi_sweapt_1/all/boundary.dat'
+fname0 = '/home/wgryglas/python/avio/naca0012/multi_sweapt_1/mach.65/input/fin_%d.dat'
+geometryFile = '/home/wgryglas/python/avio/naca0012/multi_sweapt_1/all/name.get'
+boundaryFile = '/home/wgryglas/python/avio/naca0012/multi_sweapt_1/all/boundary.dat'
 kappa = 1.4
 
 rtfs = [RedReader.RedTecplotFile(fname0%i) for i in range(1,10)]
@@ -40,7 +49,7 @@ num_modes = 9
 modesH = POD.Modes(rtfs, num_modes=num_modes)    
 modesH.writeModes('/tmp/test%d.vti')
 
-mesh = cKDTree(modesH.baseRedFile.data[:,:2])
+mesh = cKDTree(modesH.baseRedFile.data[:, :2])
 
 #==============================================================================
 # SHOW RECONSTRUCTION 
@@ -63,14 +72,14 @@ mesh = cKDTree(modesH.baseRedFile.data[:,:2])
 #             e = np.max(np.abs(v[:,fid] - v0[:,fid] ))
 #             en.append( e )
 #         plt.plot(en,label='m='+str(i))
-#             
+#
 #         print "EOF #############"
 #==============================================================================
-        
+
 get = RedReader.GetReader(geometryFile)
 
-boundary_nodes = np.loadtxt(boundaryFile)[:,:2]
-boundary_nodes_params = np.array(get.getParamList(boundary_nodes[:,:2].tolist(), 1))
+boundary_nodes = np.loadtxt(boundaryFile)[:, :2]
+boundary_nodes_params = np.array(get.getParamList(boundary_nodes[:, :2].tolist(), 1))
 
 bids = mesh.query(boundary_nodes)[1]        
 #==============================================================================
@@ -81,17 +90,17 @@ bids = mesh.query(boundary_nodes)[1]
 # xxyy = np.array( get.getXYList(boundary_nodes_params,1) )
 # plt.plot(xxyy[:,0],xxyy[:,1], 'o')
 # plt.plot(xy[:,0],xy[:,1])
-#plt.figure()
-#plt.plot(modesH.baseRedFile.data[bids,0], modesH.baseRedFile.data[bids,1], 'o' )
-#plt.plot(boundary_nodes[:,0], boundary_nodes[:,1] , 'x' )
+# plt.figure()
+# plt.plot(modesH.baseRedFile.data[bids,0], modesH.baseRedFile.data[bids,1], 'o' )
+# plt.plot(boundary_nodes[:,0], boundary_nodes[:,1] , 'x' )
 #==============================================================================
 
 work_on_param = 0
 
 modes_interpolators = list()
 for m in modesH.modes:
-    mt = np.squeeze(np.array(m[bids,work_on_param]))
-    mi = interp1d(boundary_nodes_params, mt,kind='cubic')
+    mt = np.squeeze(np.array(m[bids, work_on_param]))
+    mi = interp1d(boundary_nodes_params, mt, kind='cubic')
     #mi = UnivariateSpline(boundary_nodes_params, mt)
     #mi.set_smoothing_factor(0.)
     modes_interpolators.append(mi)
@@ -99,7 +108,6 @@ for m in modesH.modes:
 #==============================================================================
 # DISPLAY POD VECTORS VALUES INTERPOLATION ON BOUNDARY
 #==============================================================================
-# 
 # plt.figure()
 # l = np.linspace(0.,1., 5000)
 # for m, mi in zip(modesH.modes, modes_interpolators):
@@ -124,7 +132,7 @@ def getInformationMatric(test_points_):
     A = np.zeros((len(test_points_),num_modes))
     for pid, point in enumerate(test_points_):
         for mid, mi in enumerate(modes_interpolators):
-            A[pid,mid] = mi(point)
+            A[pid, mid] = mi(point)
     return A
 @require(
     num_modes>0,
@@ -136,7 +144,7 @@ def getInformationMatric_ComputeSingleCol(test_points_, pid):
     A = np.zeros((len(test_points_),num_modes))
     point = test_points_[pid]
     for mid, mi in enumerate(modes_interpolators):
-        A[pid,mid] = mi(point)
+        A[pid, mid] = mi(point)
     return A
 #==============================================================================
 # TEST THE MATRIX
@@ -189,30 +197,29 @@ def getInformationMatric_ComputeSingleCol(test_points_, pid):
     
 
 #==============================================================================
-# SHOW HOW SINGLE POINT MOVEMEN WRT TO ORIGINAL POSITIONT CHENGE cond(A)
+# SHOW HOW SINGLE POINT MOVEMENT WRT TO ORIGINAL POSITION CHANGE cond(A)
 #==============================================================================
+# num_test_points = 15
+# plt.figure()
 # testpoints = np.linspace(0.,1., num_test_points)
-# 
+#
 # for move_point in range(1,num_test_points-1):
-# 
-#     maxmove = 0.9*(testpoints[move_point+1] - testpoints[move_point-1]) 
+#
+#     maxmove = 0.9*(testpoints[move_point+1] - testpoints[move_point-1])
 #     move = np.linspace(-maxmove/2.,maxmove/2., 40)
 #     test_new_positions = testpoints[move_point] + move
-#         
-#     
+#
 #     testpoints_modified = np.array([ testpoints for t in test_new_positions ])
 #     testpoints_modified[:,move_point] = test_new_positions
-#     
-#     
+#
 #     Amodified = [ getInformationMatric(t) for t in testpoints_modified ]
-#     
-#         
+#
 #     Aoptimality = np.array([ np.trace(np.linalg.inv(AA.T.dot(AA))) for AA in Amodified ])
-#     Aoptimality = Aoptimality 
+#     Aoptimality = Aoptimality
 #     plt.semilogy(move,Aoptimality)
 #
-#    plt.grid(which='both')
-#==============================================================================  
+# plt.grid(which='both')
+#==============================================================================
 
 @require(
     not 'A' in locals(),
@@ -226,7 +233,7 @@ def getTraceOfInverse(A):
 # SHOW HOW SINGLE EXTRA POINT ALONG PROFILE CHENGE cond(A)
 #==============================================================================
 num_test_points = 1
-testpoints = np.linspace(0.,1., num_test_points)
+testpoints = np.linspace(0., 1., num_test_points)
 
 testpoints0 = np.copy(testpoints)
 
@@ -355,7 +362,7 @@ reconA0 = np.squeeze(np.array(modesH.modes).T.dot(cs_A0.reshape((1,num_modes,1))
 reconA_uniform = np.squeeze(np.array(modesH.modes).T.dot(cs_A_uniform.reshape((1,num_modes,1))))
 
 #plot beutifully
-field  = rtfs[0].variables[2+work_on_param]
+field = rtfs[0].variables[2+work_on_param]
 
 plt.title(field)
 

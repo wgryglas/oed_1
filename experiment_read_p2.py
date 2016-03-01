@@ -28,12 +28,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import re
 
-import nlopt
+#import nlopt
 
 
 
 #base = '/home/michal/avio/naca0012/single_sweapt/'
-base = '/home/michal/avio/naca0012/multi_sweapt_1/mach.20/'
+base = '/home/wgryglas/python/avio/naca0012/multi_sweapt_1/mach.20/'
 #base = '/home/michal/avio/naca0012/multi_sweapt_1/all/'
 
 fname0=base+'input/fin_%d.dat'
