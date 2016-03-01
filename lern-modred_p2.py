@@ -26,7 +26,7 @@ def pntsDraw(x,y, *args):
 
 pointsDraw = join(plt.figure, points, plt.show, argsFor=1)
 
-num_vecs = 1000
+num_vecs = 100
 
 k = 0.1
 # Arbitrary data
@@ -36,7 +36,7 @@ f = np.array((x,y))
 
 vecs = np.zeros((num_vecs, 2))
 
-rand = fixargument(np.random.multivariate_normal, mean=[0, 0], cov=[[1, 0.99], [0.99, 1]])
+rand = fixargument(np.random.multivariate_normal, mean=[0, 0], cov=[[1, 0.8], [0.8, 1]])
 
 #rand_norm = fixargument(np.random.multivariate_normal, mean=[0], cov=[[1]])
 #rand = lambda : [rand_norm()[0], rand_norm()[0]]
@@ -80,9 +80,27 @@ print "eig values:", eig_vals
 # print "results 2", modes.dot(eig_vals)
 
 
+D = np.matrix(np.zeros((2, 2)))
+np.fill_diagonal(D, eig_vals)
+
+Dinv = np.matrix(np.zeros((2, 2)))
+np.fill_diagonal(Dinv, 1./eig_vals)
+
+X = np.matrix(vecs.T)
+
+
+U = X.T * modes * Dinv
+
+print np.linalg.norm(modes*(D*U.T) - X)
+
+X2 = (modes[:,0]*eig_vals[0]*U[:,0].T).T
+
 plt.figure()
 points(vecs[:,0], vecs[:,1], color="red")
+points(X2[:,0], X2[:,1], color="blue")
+plt.show()
 
+exit()
 
 @assert_arg_iterable(excepion=True, args=(0,1), kwargs=("X", "Y"))
 def distance(X, Y):
@@ -92,7 +110,7 @@ def distance(X, Y):
             dist[i,j] = np.sqrt((x2-x1)**2 + (y2-y1)**2)
 
     if dist.shape[0] == 1 and dist.shape[1] == 1:
-        return dist[0,0]
+        return dist[0, 0]
     else:
         return dist
 
@@ -108,6 +126,10 @@ for i in range(modes.shape[0]):
     plt.arrow(0, 0, rx*m[0], ry*m[1], color=cmap(i*1./modes.shape[0]))
 
 plt.show()
+
+
+
+
 
 exit()
 
