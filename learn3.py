@@ -39,64 +39,101 @@ for i in range(1, 3):
             Y[:, count] = fun(x, i, j, k)
             count += 1
 
-f, ax = plt.subplots(2, 2)
+f, ax = plt.subplots(1, 2)
 
 for i in range(count):
-    ax[0, 0].plot(x, Y[:, i], '-', markersize=3)
+    ax[0].plot(x, Y[:, i], '-', markersize=3)
 
 
 V, E = md.compute_POD_matrices_snaps_method(Y, range(n_mods))
 
 for i in range(n_mods):
-    ax[0, 1].plot(x, V[:, i], '-')
+    ax[1].plot(x, V[:, i], '-')
 
+ax[0].set_title('Rozwiazania dla kombinacji parametrow a,b,c=1,2')
+ax[1].set_title('Wektory bazowe(POD)')
+
+plt.show()
 
 # Optimization:
-opt_pnts = [int(npoints/4), int(3*npoints/4)]
+di = int(npoints/(max_measure+1))
+opt_pnts = [di*(i+1) for i in range(max_measure)]
 
-increase = list()
+mintr=float('inf')
+run = True
+while run:
+    for i in range(max_measure):
+        tmp_opt = [v for v in opt_pnts]
+        tmp_opt.pop(i)
+        locmin = (-1, mintr)
+        print 'moving ', i, 'point, tr=', mintr
+        for j in range(npoints):
+            if j not in tmp_opt:
+                tmp_opt2 = [v for v in tmp_opt]
+                tmp_opt2.append(j)
+                W = V[tmp_opt2, :]
+                M = W.T*W
+                try:
+                    D = np.linalg.eigvalsh(M)
+                    tr = np.ravel(np.sum(1./D))
+                except np.linalg.LinAlgError:
+                    continue
 
-minimal = (0, float('inf'))
-while minimal[0] != -1 and len(opt_pnts) < max_measure:
-    minimal = (-1, minimal[1])
-    locmin = float('inf')
-    for j in range(npoints):
-        if j in opt_pnts:
-            continue
+                if tr < 0:
+                    continue
 
-        tmp_pnts = [v for v in opt_pnts]
-        tmp_pnts.append(j)
-        W = V[tmp_pnts, :]
-        M = W.T*W #W*W.T
-        try:
-            # tr = np.ravel(np.linalg.inv(M).trace())
-            D = np.linalg.eigvalsh(M)
-            tr = np.ravel(np.sum(1./D))
-        except np.linalg.LinAlgError:
-            continue
+                if tr < locmin[1]:
+                    locmin = (j, tr)
 
-        if tr < 0 :
-            continue
-
-        #tr = np.abs(tr)
-
-        if tr < locmin:
-            locmin = tr
-
-        if tr < minimal[1]:
-            minimal = (j, tr)
+        if locmin[0] != -1:
+            opt_pnts[i] = locmin[0]
+            mintr = locmin[1]
         else:
-            continue
+            run = False
+            break
 
-    if minimal[0] != -1:
-        print 'adding', minimal[0], 'with tr', minimal[1]
-        opt_pnts.append(minimal[0])
-    else:
-        print 'not added, localmin=', locmin
+#opt_pnts  = [npoints/4, 3*npoints/4]
+# minimal = (0, float('inf'))
+# while minimal[0] != -1 and len(opt_pnts) < max_measure:
+#     minimal = (-1, minimal[1])
+#     locmin = float('inf')
+#     for j in range(npoints):
+#         if j in opt_pnts:
+#             continue
+#
+#         tmp_pnts = [v for v in opt_pnts]
+#         tmp_pnts.append(j)
+#         W = V[tmp_pnts, :]
+#         M = W.T*W #W*W.T
+#         try:
+#             # tr = np.ravel(np.linalg.inv(M).trace())
+#             D = np.linalg.eigvalsh(M)
+#             tr = np.ravel(np.sum(1./D))
+#         except np.linalg.LinAlgError:
+#             continue
+#
+#         if tr < 0 :
+#             continue
+#
+#         #tr = np.abs(tr)
+#
+#         if tr < locmin:
+#             locmin = tr
+#
+#         if tr < minimal[1]:
+#             minimal = (j, tr)
+#         else:
+#             continue
+#
+#     if minimal[0] != -1:
+#         print 'adding', minimal[0], 'with tr', minimal[1]
+#         opt_pnts.append(minimal[0])
+#     else:
+#         print 'not added, localmin=', locmin
 
 
 # Generate measurement:
-coeffs = [(1, 2, 2)]#, (2, 1, 1)]
+coeffs = [(1.2, 1.8, 1.5)]#(1, 2, 2), (2, 1, 1)]
 
 exact = [fun(x, *c) for c in coeffs]
 eMax = []
@@ -108,23 +145,26 @@ for e in exact:
 eMax = max(eMax)
 eMin = min(eMin)
 
-rand = fixargument(np.random.normal, loc=0, scale=0.05*eMax, size=1)
+rand = fixargument(np.random.normal, loc=0, scale=0.05*(eMax-eMin), size=1)
 
 allMeasure = np.copy(exact)
 for i in range(len(coeffs)):
     for j in range(npoints):
         allMeasure[i,j] = allMeasure[i,j] + rand()
 
-for e in exact:
-    ax[1, 0].plot(x, e, 'b--')
-    ax[1, 1].plot(x, e, 'b--')
-
-
 # Reconstruct optimal
 A = V[opt_pnts, :]
 dataX = x[opt_pnts]
 
-ax[1, 1].vlines(dataX, eMin, eMax, linestyles='--', colors='gray')
+f, ax = plt.subplots(1, 2)
+
+legends=[]
+for e in exact:
+    legends.append(ax[1].plot(x, e, 'b--')[0])
+
+ax[1].vlines(dataX, eMin, eMax, linestyles='--', colors='gray')
+
+legend_str = ['Exact', 'Measurement', 'Reconstruction']
 
 for measure in allMeasure:
     dataY = measure[opt_pnts]
@@ -132,17 +172,23 @@ for measure in allMeasure:
     T = np.matrix([T])
     Ynew = V*T.T
     Ynew = np.ravel(Ynew)
-    ax[1, 1].plot(dataX, dataY, 'ro')
-    ax[1, 1].plot(x, Ynew, 'r-')
+    legends.append(ax[1].plot(dataX, dataY, 'ro')[0])
+    legends.append(ax[1].plot(x, Ynew, 'r-')[0])
 
+ax[1].set_title('Optimal positions')
+ax[1].legend(legends, np.repeat(legend_str, len(legends)/3))
 
 # # Reconstruct equal distribution
+legends=[]
+for e in exact:
+    legends.append(ax[0].plot(x, e, 'b--')[0])
+
 n_measure = len(opt_pnts)
 di = int(npoints/(n_measure+1))
 dataId = [di*(i+1) for i in range(n_measure)]
 dataX = x[dataId]
 
-ax[1,0].vlines(dataX, eMin, eMax, linestyles='--', colors='gray')
+ax[0].vlines(dataX, eMin, eMax, linestyles='--', colors='gray')
 
 for measure in allMeasure:
     dataY = measure[dataId]
@@ -151,8 +197,11 @@ for measure in allMeasure:
     T = np.matrix([T])
     Ynew = V*T.T
     Ynew = np.ravel(Ynew)
-    ax[1, 0].plot(dataX, dataY, 'ro')
-    ax[1, 0].plot(x, Ynew, 'r-')
+    legends.append(ax[0].plot(dataX, dataY, 'ro')[0])
+    legends.append(ax[0].plot(x, Ynew, 'r-')[0])
+
+ax[0].set_title('Equal distribution')
+ax[0].legend(legends, np.repeat(legend_str, len(legends)/3))
 
 plt.show()
 

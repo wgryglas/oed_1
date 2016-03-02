@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sat Feb 28 15:40:43 2015
+created on sat feb 28 15:40:43 2015
 
 @author: michal
 """
@@ -18,34 +18,36 @@ plt.figure = fixargument(plt.figure, figsize=(10, 10))
 
 points = fixargument(plt.plot, override=False, color="red", linestyle="", marker="o", markersize=5)
 
-pointsDraw = join(plt.figure, points, plt.show, argsFor=1)
+pointsdraw = join(plt.figure, points, plt.show, argsfor=1)
 
 
-def compare_original_and_reduced(X1, X2):
+def compare_original_and_reduced(x1, x2):
     plt.figure()
-    points(X1[:,0], X1[:,1], color="red")
-    points(X2[:,0], X2[:,1], color="blue")
+    points(x1[:,0], x1[:,1], color="red")
+    points(x2[:,0], x2[:,1], color="blue")
 
-    for x1, x2 in zip(X1, X2):
+    for x1, x2 in zip(x1, x2):
         dx = np.ravel(0.9*(x2-x1))
         x1 = np.ravel(x1)
         plt.arrow(x1[0], x1[1], dx[0], dx[1], color='gray', linewidth=0.2)
+    plt.grid(True)
+    plt.title('Redukcja za pomoca POD')
     plt.show()
 
 
-# Settings
+# settings
 
 num_vecs = 50
 k = 0.1
 
 
-# Arbitrary data
+# arbitrary data
 
-meanX, meanY = (1, 1)
-f = np.array((meanX, meanY))
+meanx, meany = (1, 1)
+f = np.array((meanx, meany))
 
 
-rand = fixargument(np.random.multivariate_normal, mean=[0, 0], cov=[[meanX, 0.8], [0.8, meanY]])
+rand = fixargument(np.random.multivariate_normal, mean=[0, 0], cov=[[meanx, 0.8], [0.8, meany]])
 
 #rand_norm = fixargument(np.random.multivariate_normal, mean=[0], cov=[[1]])
 #rand = lambda : [rand_norm()[0], rand_norm()[0]]
@@ -62,14 +64,14 @@ vecs = np.array([rand() for i in range(num_vecs)])
 #points([v[0] for v in vecs], [v[1] for v in vecs], color="red")
 
 
-podData = (np.array([r.reshape(2) for r in vecs ])).T
+poddata = (np.array([r.reshape(2) for r in vecs ])).T
 
-print "pod data shape: ", podData.shape
+print "pod data shape: ", poddata.shape
 
 
 num_modes = 2
 
-modes, eig_vals = mr.compute_POD_matrices_snaps_method(podData, range(num_modes))
+modes, eig_vals = mr.compute_POD_matrices_snaps_method(poddata, range(num_modes))
 
 mods = np.array(modes)
 
@@ -79,28 +81,28 @@ print "eig values shape", eig_vals.shape
 print "eig values:", eig_vals
 
 
-D = np.matrix(np.zeros((2, 2)))
-np.fill_diagonal(D, eig_vals)
+d = np.matrix(np.zeros((2, 2)))
+np.fill_diagonal(d, eig_vals)
 
-Dinv = np.matrix(np.zeros((2, 2)))
-np.fill_diagonal(Dinv, 1./eig_vals)
+dinv = np.matrix(np.zeros((2, 2)))
+np.fill_diagonal(dinv, 1./eig_vals)
 
-X = np.matrix(vecs.T)
-U = X.T * modes * Dinv
+x = np.matrix(vecs.T)
+u = x.T * modes * dinv
 #
-# print np.linalg.norm(modes*(D*U.T) - X)
+# print np.linalg.norm(modes*(d*u.t) - x)
 #
-# X2 = (modes[:,0]*eig_vals[0]*U[:,0].T).T
-#
-#
-# compare_original_and_reduced(vecs, X2)
+x2 = (modes[:,0]*eig_vals[0]*u[:,0].T).T
 #
 #
-# @assert_arg_iterable(excepion=True, args=(0,1), kwargs=("X", "Y"))
-# def distance(X, Y):
-#     dist = np.zeros((len(X), len(X)))
-#     for i, (x1, y1) in enumerate(zip(X,Y)):
-#         for j,(x2, y2) in enumerate(zip(X,Y)):
+compare_original_and_reduced(vecs, x2)
+#
+#
+# @assert_arg_iterable(excepion=true, args=(0,1), kwargs=("x", "y"))
+# def distance(x, y):
+#     dist = np.zeros((len(x), len(x)))
+#     for i, (x1, y1) in enumerate(zip(x,y)):
+#         for j,(x2, y2) in enumerate(zip(x,y)):
 #             dist[i,j] = np.sqrt((x2-x1)**2 + (y2-y1)**2)
 #
 #     if dist.shape[0] == 1 and dist.shape[1] == 1:
@@ -108,18 +110,18 @@ U = X.T * modes * Dinv
 #     else:
 #         return dist
 #
-# #radius = max(distance(vecs[:, 0], vecs[:, 1]).reshape(vecs.shape[0]**2))/2
-# vecRange = join(fzip(max, min), substract)
-# rx = 0.9*vecRange(vecs[:, 0])/2
-# ry = 0.9*vecRange(vecs[:, 1])/2
-#
-# cmap=plt.get_cmap('gist_rainbow')
-# for i in range(modes.shape[0]):
-#     m = modes[:, i]
-#     m = m.flat
-#     plt.arrow(0, 0, rx*m[0], ry*m[1], color=cmap(i*1./modes.shape[0]))
-#
-# plt.show()
+#radius = max(distance(vecs[:, 0], vecs[:, 1]).reshape(vecs.shape[0]**2))/2
+vecrange = join(fzip(max, min), substract)
+rx = 0.9*vecrange(vecs[:, 0])/2
+ry = 0.9*vecrange(vecs[:, 1])/2
+
+cmap=plt.get_cmap('gist_rainbow')
+for i in range(modes.shape[0]):
+    m = modes[:, i]
+    m = m.flat
+    plt.arrow(0, 0, rx*m[0], ry*m[1], color=cmap(i*1./modes.shape[0]))
+
+plt.show()
 
 
 
@@ -157,75 +159,75 @@ U = X.T * modes * Dinv
 # plt.show()
 
 
-X2 = np.array([rand() for i in range(num_modes)])
+x2 = np.array([rand() for i in range(num_modes)])
 
-A = np.zeros((num_modes*2, num_modes*2))
-A[0:num_modes, 0:num_modes] = modes
-A[num_modes:2*num_modes, num_modes:2*num_modes] = modes
+a = np.zeros((num_modes*2, num_modes*2))
+a[0:num_modes, 0:num_modes] = modes
+a[num_modes:2*num_modes, num_modes:2*num_modes] = modes
 
-X2 = np.ravel(X2.reshape((1, 4)))
+x2 = np.ravel(x2.reshape((1, 4)))
 
-T = np.linalg.lstsq(A, X2)[0]
-T = T.reshape((2, 2))
+t = np.linalg.lstsq(a, x2)[0]
+t = t.reshape((2, 2))
 
-Xnew = modes*T
-Xnew = Xnew.T
+xnew = modes*t
+xnew = xnew.T
 
-print Xnew
+print xnew
 exit()
 
 
-Xc = np.matrix([[meanX], [meanY]])
+xc = np.matrix([[meanx], [meany]])
 
-c = np.linalg.lstsq(modes, Xc)[0]
+c = np.linalg.lstsq(modes, xc)[0]
 
-c = c.T
+c = c.t
 
 
 print "new coeffs", c
 
 
-# Reconstruction based on new data
+# reconstruction based on new data
 
-Dinv = np.matrix(np.zeros((num_modes, num_modes)))
-np.fill_diagonal(Dinv, 1./c)
-D = np.matrix(np.zeros((num_modes, num_modes)))
-np.fill_diagonal(D, c)
+dinv = np.matrix(np.zeros((num_modes, num_modes)))
+np.fill_diagonal(dinv, 1./c)
+d = np.matrix(np.zeros((num_modes, num_modes)))
+np.fill_diagonal(d, c)
 
-#U = X.T * modes * Dinv
-Xnew = modes * D * U.T
+#u = x.t * modes * dinv
+xnew = modes * d * u.t
 
 
-print modes.T*Xc*Xc.T*modes
+print modes.t*xc*xc.t*modes
 
 exit()
 
-# print np.linalg.norm(X-Xnew)
+# print np.linalg.norm(x-xnew)
 
 plt.figure()
-points(X[0, :], X[1, :], color="blue", markersize=8)
-points(Xnew[0, :], Xnew[1, :], color="red")
+points(x[0, :], x[1, :], color="blue", markersize=8)
+points(xnew[0, :], xnew[1, :], color="red")
 plt.show()
 
-# A = modes
-# print A.shape
-# c = np.linalg.lstsq(A, f.reshape(nx*ny))[0]
+# a = modes
+# print a.shape
+# c = np.linalg.lstsq(a, f.reshape(nx*ny))[0]
 #
 # for i in range(num_modes):
 #    v = modes[:,i]
 #    f1 = f1 + c[i]*v.reshape(nx,ny)
 #    #print v.reshape(nx*ny).dot(f1.reshape(nx*ny,1))
 #    plt.figure()
-#    plt.plot(f1.reshape(nx*ny).T,'-')
+#    plt.plot(f1.reshape(nx*ny).t,'-')
 #    plt.plot(f.reshape(nx*ny))
 #
 #    plt.show()
-#    #print N.max(f1)
-#    #print N.min(f1)
+#    #print n.max(f1)
+#    #print n.min(f1)
 #    #print "###################"
 ##    plt.figure()
-##    res = N.power((f1-f).reshape(nx*ny),2)
-##    print N.sqrt(N.sum(res))
+##    res = n.power((f1-f).reshape(nx*ny),2)
+##    print n.sqrt(n.sum(res))
 ##    plt.imshow(res.reshape(nx,ny))
 ##    plt.colorbar()
 #plt.show()
