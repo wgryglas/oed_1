@@ -42,13 +42,16 @@ for i in range(1, 3):
 f, ax = plt.subplots(1, 2)
 
 for i in range(count):
-    ax[0].plot(x, Y[:, i], '-', markersize=3)
+    ax[0].plot(x, Y[:, i], 'o-', markersize=3)
+
+ax[0].grid(True)
+ax[1].grid(True)
 
 
 V, E = md.compute_POD_matrices_snaps_method(Y, range(n_mods))
 
 for i in range(n_mods):
-    ax[1].plot(x, V[:, i], '-')
+    ax[1].plot(x, V[:, i], 'o')
 
 ax[0].set_title('Rozwiazania dla kombinacji parametrow a,b,c=1,2')
 ax[1].set_title('Wektory bazowe(POD)')
