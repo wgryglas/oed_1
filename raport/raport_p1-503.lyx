@@ -1,8 +1,7 @@
 #LyX 2.2 created this file. For more info see http://www.lyx.org/
-\lyxformat 506
+\lyxformat 503
 \begin_document
 \begin_header
-\save_transient_properties true
 \origin unavailable
 \textclass article
 \begin_preamble
@@ -68,9 +67,9 @@
 \papersides 1
 \paperpagestyle default
 \tracking_changes false
-\output_changes false
 \html_math_output 0
 \html_css_as_file 0
+\output_changes false
 \html_be_strict false
 \end_header
 
@@ -629,7 +628,7 @@ d as fairly standard numerical tool, present in number of code libraries.
 \begin_inset Float figure
 wide false
 sideways false
-status open
+status collapsed
 
 \begin_layout Plain Layout
 \align center

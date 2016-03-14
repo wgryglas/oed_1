@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #==============================================================================
-# IMPORT LOCAL TOOLS IF PROJECT IS IN DIFFERENT LOCATION
-#------------------------------------------------------------------------------
+# IMPORT
 #------------------------------------------------------------------------------
 import matplotlib.pyplot as plt
 import numpy as np
@@ -32,6 +31,10 @@ class require:
 #==============================================================================
 
 
+#==============================================================================
+# SETUP INPUT DATA
+#------------------------------------------------------------------------------
+
 fname0 = '/home/wgryglas/python/avio/naca0012/multi_sweapt_1/mach.65/input/fin_%d.dat'
 geometryFile = '/home/wgryglas/python/avio/naca0012/multi_sweapt_1/all/name.get'
 boundaryFile = '/home/wgryglas/python/avio/naca0012/multi_sweapt_1/all/boundary.dat'
@@ -54,26 +57,29 @@ mesh = cKDTree(modesH.baseRedFile.data[:, :2])
 #==============================================================================
 # SHOW RECONSTRUCTION 
 #==============================================================================
-# plt.figure()
-# for fid, field in enumerate(rtfs[0].variables[2:]):
-#     plt.subplot(3,2,fid+1)
-#     plt.title(field)
-#     for i,rtf in enumerate(rtfs):
-#         shape = rtf.data[:,2:].shape
-#         shape1d = shape[0] * shape[1]
-#         v0 = rtf.data[:,2:].reshape((1,shape1d))
-#         v = np.zeros_like(v0)
-#         cs = list()
-#         en = list()
-#         for m in modesH.modes:
-#             c = v0.dot(m.reshape(shape1d).T)[0,0]
-#             v = v + c * m.reshape(shape1d)
-#             print v[:,fid]
-#             e = np.max(np.abs(v[:,fid] - v0[:,fid] ))
-#             en.append( e )
-#         plt.plot(en,label='m='+str(i))
-#
-#         print "EOF #############"
+plt.figure()
+for fid, field in enumerate(rtfs[0].variables[2:]):
+    plt.subplot(3, 2, fid+1)
+    plt.title(field)
+    for i, rtf in enumerate(rtfs):
+        shape = rtf.data[:, 2:].shape
+        shape1d = shape[0] * shape[1]
+        v0 = rtf.data[:, 2:].reshape((1, shape1d))
+        v = np.zeros_like(v0)
+        cs = list()
+        en = list()
+        for m in modesH.modes:
+            c = v0.dot(m.reshape(shape1d).T)[0, 0]
+            v = v + c * m.reshape(shape1d)
+            print v[:, fid]
+            e = np.max(np.abs(v[:, fid] - v0[:, fid]))
+            en.append(e)
+        plt.plot(en, label='m='+str(i))
+
+        print "EOF #############"
+
+plt.show()
+exit()
 #==============================================================================
 
 get = RedReader.GetReader(geometryFile)

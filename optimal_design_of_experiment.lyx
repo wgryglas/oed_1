@@ -1,0 +1,581 @@
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 506
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\begin_preamble
+\usepackage{lscape}
+\usepackage{afterpage}
+\usepackage{geometry}
+\end_preamble
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Advanced instrumentation strategy and test matrix selection for turbines
+ case
+\end_layout
+
+\begin_layout Standard
+Ability to design instrumentation of any type of experiment is crucial to
+ cost, effectiveness and robustness of the experimental setup.
+ Growing computational power allows to predict phenomenon that is being
+ measured.
+ Obtained information can be used to perform optimization and design an
+ experiment that will reduce measurement errors.
+ The main subject of this work was to find formal procedure, that will 
+\shape italic
+a priori
+\shape default
+ provide instrumentation guidelines, like where to measure pressure on an
+ airfoil.
+ The proposed optimization algorithm is based on statistical criterion called
+ 
+\shape italic
+A-criterion
+\shape default
+, which is constructed from surrogate model obtained from Proper Orthogonal
+ Decomposition (POD) of set of numerical results.
+ Additionally, thanks to proposed approach, collected data from an experiment
+ together with numerical results allows to reconstruct all flow fields in
+ computational domain.
+ Numerical tests have shown that reconstruction gives best approximation
+ of pressure profile in comparison to other approaches.
+ 
+\end_layout
+
+\begin_layout Standard
+Presented method was validated using virtual experiment.
+ The experiment consisted of results from numerical simulation based on
+ high and low density meshes.
+ High density mesh was used as 
+\begin_inset Quotes eld
+\end_inset
+
+real
+\begin_inset Quotes erd
+\end_inset
+
+ experimental data, and coarse mesh was used for measurement locations optimizat
+ion.
+ The goal was to reconstruct pressure profile in the best possible way from
+ 
+\begin_inset Quotes eld
+\end_inset
+
+real
+\begin_inset Quotes erd
+\end_inset
+
+ data applied to the sensors positions.
+ The results obtained from optimal positions were then compared with a profile
+ reconstructed from equally distributed points along the profile.
+ 
+\end_layout
+
+\begin_layout Standard
+Assuming, that some observed phenomenon is described by following linear
+ model:
+\begin_inset Formula 
+\[
+V=W\beta+\mu
+\]
+
+\end_inset
+
+where 
+\begin_inset Formula $W$
+\end_inset
+
+ is coefficients matrix, 
+\series bold
+
+\begin_inset Formula $\beta$
+\end_inset
+
+ 
+\series default
+is an unknown parameters vector (in general matrix) and 
+\begin_inset Formula $\mu$
+\end_inset
+
+ is the difference between linear model (
+\begin_inset Formula $W\beta$
+\end_inset
+
+) and observations 
+\begin_inset Formula $V$
+\end_inset
+
+ (e.
+ g.: measured values during an experiment).
+ When least square method is applied to find parameters estimator then it
+ can be shown, that covariance of this estimator is equal to
+\begin_inset Formula 
+\[
+cov(\hat{\beta})=(WW^{T})^{-1}
+\]
+
+\end_inset
+
+The A-criterion optimization in this case can be formulated as choosing
+ coefficients of matrix 
+\begin_inset Formula $W$
+\end_inset
+
+ so that trace of covariance matrix is minimized 
+\begin_inset Formula 
+\[
+min\,\,tr((WW^{T})^{-1})
+\]
+
+\end_inset
+
+The coefficients of 
+\begin_inset Formula $W$
+\end_inset
+
+ depends directly on the way how linear model is being constructed.
+ Therefore the linear model should be built based on sensors positions and
+ thus allow to perform optimization using A-criterion.
+ For this purpose was used POD decomposition from set of previously calculated
+ numerical results.
+ This method allows to build the 
+\series bold
+
+\begin_inset Formula $W$
+\end_inset
+
+
+\series default
+ matrix by using POD vectors as its columns.
+ POD is a generic method and thus proposed algorithm is not problem specific.
+ Furthermore POD vectors due to its orthogonality ensures numerical stability
+ of the optimization algorithm.
+ Decomposition allows to write solution for each numerical mesh node and
+ flow variable as
+\begin_inset Formula 
+\[
+V_{i}=\sum_{j=0}^{N}W_{i,j}\cdot\beta_{j}
+\]
+
+\end_inset
+
+where 
+\begin_inset Formula $W$
+\end_inset
+
+ is matrix constructed from POD modes and 
+\begin_inset Formula $\beta$
+\end_inset
+
+ is new parameters vector.
+ The nature of POD decomposition allows to reduce number of modes used in
+ above equation to properly represent solution 
+\begin_inset Formula $V_{i}$
+\end_inset
+
+.
+ Therefor the number of coefficients 
+\begin_inset Formula $\beta_{j}$
+\end_inset
+
+ can also be reduced 
+\begin_inset Formula 
+\[
+V_{i}=\sum_{j=0}^{m}W_{i,j}\cdot\beta_{j}
+\]
+
+\end_inset
+
+where 
+\begin_inset Formula $m$
+\end_inset
+
+ stands for number of modes used in reduced model.
+ This number should be smaller then number of measurement points.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+(W_{:,m}W_{:,m}^{T})^{-1}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+which leads to covariance matrix minimization.
+ Covariance matrix is being created 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename doc/optim.png
+	lyxscale 25
+	width 75text%
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Sketch of the instrumentation strategy optimization algorithm work flow.
+ 
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:optim"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+elements of the method
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+linear model, purpose of pod
+\end_layout
+
+\begin_layout Itemize
+criterion, description
+\end_layout
+
+\begin_layout Itemize
+optimization 
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+some results + clarification 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename optimized_naca_multisweapt/points.png
+	lyxscale 25
+	width 100text%
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Resulting of optimization of instrumentation points distribution.
+ Red crosses denotes uniform points distribution (uniform in spline parameter
+ space) and green dots denotes optima ones.
+ In the design process of real experiment the size of experimental part
+ will be known, and minimum distance between points should be take into
+ account, as long as possible correlation between measurements.
+ 
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Instrumentation-positions-optimi-1"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename optimized_naca_multisweapt/points.png
+	lyxscale 25
+	width 100text%
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Resulting of optimization of instrumentation points distribution.
+ Red crosses denotes uniform points distribution (uniform in spline parameter
+ space) and green dots denotes optima ones.
+ In the design process of real experiment the size of experimental part
+ will be known, and minimum distance between points should be take into
+ account, as long as possible correlation between measurements.
+ 
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Instrumentation-positions-optimi-1-2"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename optimized_cascasde_1/profil.png
+	lyxscale 25
+	width 100text%
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Resulting instrumentation points distribution.
+ Red crosses denotes uniform points distribution (uniform in spline parameter
+ space) and green dots denotes optima ones.
+ In the design process of real experiment the size of experimental part
+ will be known, and minimum distance between points should be take into
+ account, as long as possible correlation between measurements.
+ 
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Instrumentation-positions-optimi-1-1"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset Float figure
+wide false
+sideways true
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename optimized_cascasde_1/Aoa45P0.359_pressur.png
+	lyxscale 25
+	height 80text%
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+The result of virtual experiment.
+ Blue line denotes pressure profile obtained for angle of attack equal to
+ 0 and pressure on outlet equal to 0.7.
+ It is considered as 
+\begin_inset Quotes eld
+\end_inset
+
+real
+\begin_inset Quotes erd
+\end_inset
+
+.
+ Thin gray lines denotes optimal and uniform instrumentation points positions.
+ Color field around reconstructed lines denotes standard deviation of each
+ reconstructed solution.
+ It should be noted that for most of the figure black dots representing
+ reconstructed solution overlaps with blue line representing pressure profile
+ to be reconstructed.
+ 
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:pMa0.7-1-1"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename optimized_cascasde_1/small_velocity2_rec.png
+	lyxscale 25
+	width 80text%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename optimized_cascasde_1/small_velocity2.png
+	lyxscale 25
+	width 80text%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Velocity magnitude around cascade element.
+ The velocity field reconstructed form pressure measurements on the airfoil
+ surface is presented in upper picture.
+ The virtual experiment result, computed on much finer mesh, is presented
+ in lower figure
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Velocity-magnitude-around"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
