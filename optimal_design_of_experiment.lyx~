@@ -99,8 +99,9 @@ a priori
 \shape italic
 A-criterion
 \shape default
-, which is constructed from surrogate model obtained from Proper Orthogonal
- Decomposition (POD) of set of numerical results.
+, which is constructed from surrogate linear model.
+ The model is obtained from Proper Orthogonal Decomposition (POD) applied
+ to numerical results set.
  Additionally, thanks to proposed approach, collected data from an experiment
  together with numerical results allows to reconstruct all flow fields in
  computational domain.
@@ -110,10 +111,265 @@ A-criterion
 \end_layout
 
 \begin_layout Standard
+The proposed method can be described in the following steps: 
+\end_layout
+
+\begin_layout Enumerate
+Perform set of numerical simulations a number of flow parameters and/or
+ geometry configurations (e.g.
+ different pressure drop, different angles of attack).
+ This base solutions should define subspace in physical parameters where
+ all experiments should lie.
+\end_layout
+
+\begin_layout Enumerate
+Construct linear model using POD applied for all numerical data
+\begin_inset Formula 
+\[
+V^{i}=W\cdot\beta^{i}
+\]
+
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+where 
+\begin_inset Formula $V^{i}$
+\end_inset
+
+ is the vector of nodal results for certain flow configuration (
+\begin_inset Formula $i$
+\end_inset
+
+ index), 
+\begin_inset Formula $W$
+\end_inset
+
+ is the matrix with POD modes as columns (orthogonal vectors), 
+\begin_inset Formula $\beta^{i}$
+\end_inset
+
+ is coefficients vector.
+ 
+\end_layout
+
+\begin_layout Enumerate
+Perform model reduction by leaving only 
+\begin_inset Formula $m$
+\end_inset
+
+ first columns of 
+\begin_inset Formula $W$
+\end_inset
+
+ matrix and 
+\begin_inset Formula $m$
+\end_inset
+
+ coefficients of 
+\begin_inset Formula $\beta^{i}$
+\end_inset
+
+ vector
+\begin_inset Formula 
+\[
+\tilde{V}^{i}=W_{:,m}\cdot\beta_{m}^{i}
+\]
+
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+where 
+\begin_inset Formula $W_{:,m}$
+\end_inset
+
+ is reduced 
+\begin_inset Formula $W$
+\end_inset
+
+ matrix and 
+\begin_inset Formula $\beta_{m}^{i}$
+\end_inset
+
+ is reduced coefficients vector.
+ Note that 
+\begin_inset Formula $\tilde{V}^{i}$
+\end_inset
+
+ is still of the same size as 
+\begin_inset Formula $V^{i}$
+\end_inset
+
+, but requires less data to be computed.
+ 
+\end_layout
+
+\begin_layout Enumerate
+The goal is to calculate estimator of reAfteral parameters 
+\begin_inset Formula $\hat{\beta_{m}}$
+\end_inset
+
+ from an experimental data.
+ The smaller error will appear in 
+\begin_inset Formula $\hat{\beta_{m}}$
+\end_inset
+
+ the more information will be gained.
+ Dimension of 
+\begin_inset Formula $\beta_{m}$
+\end_inset
+
+ vector is relatively small since POD reduction usually requires to chose
+ from 10 up to 20 modes.
+ Therefore the number of measurement points required to calculate 
+\begin_inset Formula $\hat{\beta_{m}}$
+\end_inset
+
+ will need to be at least equal to 
+\begin_inset Formula $m$
+\end_inset
+
+, what is rather ease to achieve.
+ Each row of 
+\begin_inset Formula $W_{:,m}$
+\end_inset
+
+ matrix refers to numerical mesh node and measurement should be performed
+ in the same locations.
+ The number of rows 
+\begin_inset Formula $W_{:,m}$
+\end_inset
+
+ is equal to 
+\begin_inset Formula $a\cdot N$
+\end_inset
+
+ where 
+\begin_inset Formula $a$
+\end_inset
+
+ is number of flow variables (pressure, velocity components, etc.) and 
+\begin_inset Formula $N$
+\end_inset
+
+ is number of mesh nodes.
+ Thus for finding least square estimator 
+\series bold
+
+\begin_inset Formula $\hat{\beta_{m}}$
+\end_inset
+
+ 
+\series default
+only some small subset of 
+\begin_inset Formula $W_{:,m}$
+\end_inset
+
+ rows is required.
+ However the way rows would be chosen it will affect the covariance of 
+\begin_inset Formula $\hat{\beta_{m}}$
+\end_inset
+
+ and thus affect measurement error.
+ A-criterion in this case allows to test which rows (and measurement points)
+ from 
+\begin_inset Formula $W_{:,m}$
+\end_inset
+
+ results in the smallest possible covariance of 
+\begin_inset Formula $\hat{\beta_{m}}$
+\end_inset
+
+.
+ The A-criterion in this case is formulated as choosing 
+\begin_inset Formula $W_{:,m}$
+\end_inset
+
+ from 
+\begin_inset Formula $W$
+\end_inset
+
+ so trace of covariance matrix 
+\begin_inset Formula $(W_{:,m}W_{:,m}^{T})^{-1}$
+\end_inset
+
+ is minimal.
+ Optimization algorithm can be constructed as follows
+\end_layout
+
+\begin_deeper
+\begin_layout Enumerate
+Equally distribute 
+\begin_inset Formula $p$
+\end_inset
+
+ points along profile for instance.
+\end_layout
+
+\begin_layout Enumerate
+Take into consideration one point from 
+\begin_inset Formula $p$
+\end_inset
+
+ and calculate A-criterion for each possible position (consider all other
+ points as fixed).
+\end_layout
+
+\begin_layout Enumerate
+Move the point to the position which was referring to smallest value of
+ A-criterion.
+\end_layout
+
+\begin_layout Enumerate
+Repeat steps from (b) and (c) for all initial points.
+ 
+\end_layout
+
+\end_deeper
+\begin_layout Enumerate
+After conducting experiment solution reconstruction can be performed.
+ New estimator 
+\begin_inset Formula $\hat{\beta_{m}}$
+\end_inset
+
+ can be calculated using least square method and experimental data.
+ Values of 
+\begin_inset Formula $\hat{\beta_{m}}$
+\end_inset
+
+ can be used to calculate solution in each mesh node by using formula 
+\begin_inset Formula $V=W_{:,m}\cdot\hat{\beta_{m}}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
 Presented method was validated using virtual experiment.
  The experiment consisted of results from numerical simulation based on
  high and low density meshes.
- High density mesh was used as 
+ High density mesh results with addition of uncorrelated error with normal
+ distribution was used as 
 \begin_inset Quotes eld
 \end_inset
 
@@ -139,145 +395,6 @@ real
 \end_layout
 
 \begin_layout Standard
-Assuming, that some observed phenomenon is described by following linear
- model:
-\begin_inset Formula 
-\[
-V=W\beta+\mu
-\]
-
-\end_inset
-
-where 
-\begin_inset Formula $W$
-\end_inset
-
- is coefficients matrix, 
-\series bold
-
-\begin_inset Formula $\beta$
-\end_inset
-
- 
-\series default
-is an unknown parameters vector (in general matrix) and 
-\begin_inset Formula $\mu$
-\end_inset
-
- is the difference between linear model (
-\begin_inset Formula $W\beta$
-\end_inset
-
-) and observations 
-\begin_inset Formula $V$
-\end_inset
-
- (e.
- g.: measured values during an experiment).
- When least square method is applied to find parameters estimator then it
- can be shown, that covariance of this estimator is equal to
-\begin_inset Formula 
-\[
-cov(\hat{\beta})=(WW^{T})^{-1}
-\]
-
-\end_inset
-
-The A-criterion optimization in this case can be formulated as choosing
- coefficients of matrix 
-\begin_inset Formula $W$
-\end_inset
-
- so that trace of covariance matrix is minimized 
-\begin_inset Formula 
-\[
-min\,\,tr((WW^{T})^{-1})
-\]
-
-\end_inset
-
-The coefficients of 
-\begin_inset Formula $W$
-\end_inset
-
- depends directly on the way how linear model is being constructed.
- Therefore the linear model should be built based on sensors positions and
- thus allow to perform optimization using A-criterion.
- For this purpose was used POD decomposition from set of previously calculated
- numerical results.
- This method allows to build the 
-\series bold
-
-\begin_inset Formula $W$
-\end_inset
-
-
-\series default
- matrix by using POD vectors as its columns.
- POD is a generic method and thus proposed algorithm is not problem specific.
- Furthermore POD vectors due to its orthogonality ensures numerical stability
- of the optimization algorithm.
- Decomposition allows to write solution for each numerical mesh node and
- flow variable as
-\begin_inset Formula 
-\[
-V_{i}=\sum_{j=0}^{N}W_{i,j}\cdot\beta_{j}
-\]
-
-\end_inset
-
-where 
-\begin_inset Formula $W$
-\end_inset
-
- is matrix constructed from POD modes and 
-\begin_inset Formula $\beta$
-\end_inset
-
- is new parameters vector.
- The nature of POD decomposition allows to reduce number of modes used in
- above equation to properly represent solution 
-\begin_inset Formula $V_{i}$
-\end_inset
-
-.
- Therefor the number of coefficients 
-\begin_inset Formula $\beta_{j}$
-\end_inset
-
- can also be reduced to the number of measurement points:
-\begin_inset Formula 
-\[
-V_{i}=\sum_{j=0}^{m}W_{i,j}\cdot\beta_{j}
-\]
-
-\end_inset
-
-where 
-\begin_inset Formula $m$
-\end_inset
-
- stands for number of modes used in reduced model.
- 
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\[
-(W_{:,m}W_{:,m}^{T})^{-1}
-\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-which leads to covariance matrix minimization.
- Covariance matrix is being created 
-\end_layout
-
-\begin_layout Standard
 \begin_inset Float figure
 wide false
 sideways false
@@ -286,155 +403,9 @@ status collapsed
 \begin_layout Plain Layout
 \align center
 \begin_inset Graphics
-	filename doc/optim.png
-	lyxscale 25
-	width 75text%
-
-\end_inset
-
-
-\begin_inset Caption Standard
-
-\begin_layout Plain Layout
-Sketch of the instrumentation strategy optimization algorithm work flow.
- 
-\begin_inset CommandInset label
-LatexCommand label
-name "fig:optim"
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Itemize
-elements of the method
-\end_layout
-
-\begin_deeper
-\begin_layout Itemize
-linear model, purpose of pod
-\end_layout
-
-\begin_layout Itemize
-criterion, description
-\end_layout
-
-\begin_layout Itemize
-optimization 
-\end_layout
-
-\end_deeper
-\begin_layout Itemize
-some results + clarification 
-\end_layout
-
-\begin_layout Standard
-\begin_inset Float figure
-wide false
-sideways false
-status collapsed
-
-\begin_layout Plain Layout
-\begin_inset Graphics
-	filename optimized_naca_multisweapt/points.png
-	lyxscale 25
-	width 100text%
-
-\end_inset
-
-
-\begin_inset Caption Standard
-
-\begin_layout Plain Layout
-Resulting of optimization of instrumentation points distribution.
- Red crosses denotes uniform points distribution (uniform in spline parameter
- space) and green dots denotes optima ones.
- In the design process of real experiment the size of experimental part
- will be known, and minimum distance between points should be take into
- account, as long as possible correlation between measurements.
- 
-\begin_inset CommandInset label
-LatexCommand label
-name "fig:Instrumentation-positions-optimi-1"
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
- 
-\begin_inset Float figure
-wide false
-sideways false
-status collapsed
-
-\begin_layout Plain Layout
-\begin_inset Graphics
-	filename optimized_naca_multisweapt/points.png
-	lyxscale 25
-	width 100text%
-
-\end_inset
-
-
-\begin_inset Caption Standard
-
-\begin_layout Plain Layout
-Resulting of optimization of instrumentation points distribution.
- Red crosses denotes uniform points distribution (uniform in spline parameter
- space) and green dots denotes optima ones.
- In the design process of real experiment the size of experimental part
- will be known, and minimum distance between points should be take into
- account, as long as possible correlation between measurements.
- 
-\begin_inset CommandInset label
-LatexCommand label
-name "fig:Instrumentation-positions-optimi-1-2"
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Float figure
-wide false
-sideways false
-status collapsed
-
-\begin_layout Plain Layout
-\begin_inset Graphics
 	filename optimized_cascasde_1/profil.png
 	lyxscale 25
-	width 100text%
+	width 75text%
 
 \end_inset
 
@@ -448,7 +419,6 @@ Resulting instrumentation points distribution.
  In the design process of real experiment the size of experimental part
  will be known, and minimum distance between points should be take into
  account, as long as possible correlation between measurements.
- 
 \begin_inset CommandInset label
 LatexCommand label
 name "fig:Instrumentation-positions-optimi-1-1"
@@ -465,7 +435,10 @@ name "fig:Instrumentation-positions-optimi-1-1"
 
 \end_inset
 
- 
+
+\end_layout
+
+\begin_layout Standard
 \begin_inset Float figure
 wide false
 sideways true
@@ -519,6 +492,9 @@ name "fig:pMa0.7-1-1"
 \end_inset
 
  
+\end_layout
+
+\begin_layout Standard
 \begin_inset Float figure
 wide false
 sideways false
