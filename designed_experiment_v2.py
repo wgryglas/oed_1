@@ -79,7 +79,7 @@ for fid, field in enumerate(rtfs[0].variables[2:]):
         print "EOF #############"
 
 plt.show()
-exit()
+
 #==============================================================================
 
 get = RedReader.GetReader(geometryFile)

@@ -8,9 +8,6 @@ class require:
         pass
     def __call__(self, func):
         return func
-    
-import sys
-sys.path.append('/home/wgryglas/python')
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -37,7 +34,7 @@ work_on_param = 1
 num_test_points = 2 * num_modes + 1
 #num_test_positions = 10 * num_test_points + 1
 
-rtfs = [RedReader.RedTecplotFile(fname0%i, useCache=False) for i in range(1,num_files+1)]
+rtfs = [RedReader.RedTecplotFile(fname0%i, useCache=True) for i in range(1,num_files+1)]
     
 #==============================================================================
 # for rtf in rtfs:            
@@ -46,7 +43,7 @@ rtfs = [RedReader.RedTecplotFile(fname0%i, useCache=False) for i in range(1,num_
 #     rtf.appendData('p', p)          
 #==============================================================================
 
-modesH = POD.Modes(rtfs, num_modes=num_modes)    
+modesH = POD.Modes(rtfs, num_modes=num_modes, split_variables=True)
 modesH.writeModes('/tmp/test%d.vti')
 
 mesh = cKDTree(modesH.baseRedFile.data[:,:2])
@@ -85,12 +82,12 @@ bids = mesh.query(boundary_nodes)[1]
 #==============================================================================
 #DISPLAY  BOUNDARY NODES PARAMETRISATION        
 #==============================================================================
-plt.figure()
-xy = np.array( get.getXYList(np.linspace(0.,1.,200),1) )
-xxyy = np.array( get.getXYList(boundary_nodes_params,1) )
-plt.plot(xxyy[:,0],xxyy[:,1], 'o')
-plt.plot(xy[:,0],xy[:,1])
-plt.show()
+# plt.figure()
+# xy = np.array( get.getXYList(np.linspace(0.,1.,200),1) )
+# xxyy = np.array( get.getXYList(boundary_nodes_params,1) )
+# plt.plot(xxyy[:,0],xxyy[:,1], 'o')
+# plt.plot(xy[:,0],xy[:,1])
+# plt.show()
 
 #plt.plot(modesH.baseRedFile.data[bids,0], modesH.baseRedFile.data[bids,1], 'o' )
 #plt.plot(boundary_nodes[:,0], boundary_nodes[:,1] , 'x' )
@@ -264,7 +261,7 @@ testpoints_all_combinations = list()
 decision_window = np.zeros
 
 for it in range(num_iterations):
-    print "RUN NUMBER",it,"/",num_iterations
+    print "RUN NUMBER", it, "/", num_iterations
         
     work_on_point = np.mod(it,num_test_points)
     #print "MOVING POINT", work_on_point    
@@ -280,13 +277,16 @@ for it in range(num_iterations):
     testpoints_modified = np.array([ testpoints for t in test_new_positions ])
     testpoints_modified[:,-1] = test_new_positions
 
+    # A00 = getInformationMatric(testpoints[:-1])
+    # invA00 = np.linalg.inv(A00.T.dot(A00))
+    # trace_0 = np.trace(invA00)
+    # x = np.array( [ getInformationMatric_ComputeSingleCol(t,num_test_points-1)[-1,:] for t in testpoints_modified ] )
+    # w = np.array([invA00.dot(xx) for xx in x])
+    # Aoptimality = np.array([ trace_0 - ww.T.dot(ww)/ (1. + xx.T.dot(ww) )  for ww, xx in zip(w,x) ])
 
-    A00 = getInformationMatric(testpoints[:-1])
-    invA00 = np.linalg.inv(A00.T.dot(A00))
-    trace_0 = np.trace(invA00)
-    x = np.array( [ getInformationMatric_ComputeSingleCol(t,num_test_points-1)[-1,:] for t in testpoints_modified ] )
-    w = np.array([invA00.dot(xx) for xx in x])
-    Aoptimality = np.array([ trace_0 - ww.T.dot(ww)/ (1. + xx.T.dot(ww) )  for ww, xx in zip(w,x) ])
+
+    # WG
+    Aoptimality = np.array([getACriterion(getInformationMatric(t)) for t in testpoints_modified])
 
 
     #plt.semilogy(test_new_positions,Aoptimality)
@@ -309,7 +309,8 @@ for it in range(num_iterations):
         else:
             pass
             #print "     repeated point ", optim_
-    
+
+    print 'moving ', testpoints[-1], 'to', test_new_positions[optim]
     testpoints[-1] = test_new_positions[optim]
     
    
@@ -383,10 +384,25 @@ for p in range(0,len(Aoptim_min),num_test_points):
 plt.xlabel('Iteration')
 
 
+
+plt.show()
+
 plt.figure()
-plt.plot(testpoints_xy[:,0], testpoints_xy[:,1],'ro', ms=30)
-plt.plot(testpoints0_xy[:,0], testpoints0_xy[:,1],'ko' , ms=20)
-plt.plot(testpoints_uniform_xy[:,0], testpoints_uniform_xy[:,1],'bo' , ms=10)
+plt.plot(testpoints_xy[:,0], testpoints_xy[:,1],'ro', ms=10)
+# plt.plot(testpoints0_xy[:,0], testpoints0_xy[:,1],'ko' , ms=20)
+#plt.plot(testpoints_uniform_xy[:,0], testpoints_uniform_xy[:,1],'bo' , ms=10)
+
+bcords = np.array(get.getXYList(boundary_nodes_params, 1))
+plt.plot(bcords[:, 0], bcords[:, 1], 'b-')
+plt.axes().set_aspect('equal', 'datalim')
+plt.get_current_fig_manager().full_screen_toggle()
+plt.show()
+
+print "Min Aopt", '%.2e' % min(Aoptim_min)
+
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+exit()
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 plt.figure()
 
@@ -520,7 +536,7 @@ if not initial_is_singular:
         plt.semilogy(profile_length_param, err,'ro-')    
     
         err_unif = np.absolute(reconA0[fid,bids] - reconA_uniform[fid,bids])
-        plt.semilogy(profile_length_param, err_unif,'bo-')    
+        plt.semilogy(profile_length_param, err_unif,'bo-')
 
-    
+
 plt.show()

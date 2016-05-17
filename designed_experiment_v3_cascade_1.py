@@ -54,7 +54,7 @@ print "end reading"
 
 modesH = POD.Modes(rtfs, num_modes=num_modes)    
 modesH.writeModes(dir0+'mode_%d.dat')
-dfdf
+
 mesh = cKDTree(modesH.baseRedFile.data[:,:2])
 
 #==============================================================================
