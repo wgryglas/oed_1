@@ -1,7 +1,7 @@
 __author__ = 'wgryglas'
 
 
-def perform(dirs, files, par):
+def perform(dirs, files, par, organizer):
     """
     Function which addes outflow mach number to the file names
     :param dirs: object containing directories setup
@@ -39,10 +39,11 @@ def perform(dirs, files, par):
     line_xy[:, 0] = line_xy[:, 0] - dx + cord/2
 
 
-
     # ------- PREPARE DATA ----------------------------------------------------------------------------------------------- #
 
-    init_data = RedTecplotFile(dirs.all_data+os.sep+glob.glob1(dirs.all_data, "*.dat")[0], useCache=True)
+    print files.red_converged_results[0]
+
+    init_data = RedTecplotFile(files.red_converged_results[0], useCache=True)
 
     mesh = cKDTree(init_data.data[:, :2])
     closest_line_ids = mesh.query(line_xy)[1]
@@ -74,14 +75,15 @@ def perform(dirs, files, par):
 
     inputData = list()
     line_params = np.linspace(0, 1, len(line_xy))
-    for i, fname in enumerate(glob.glob1(dirs.all_data, "*.dat")):
-        f_data = RedTecplotFile(dirs.all_data+os.sep+fname, useCache=True).\
-                 renameVariables(["X", "Y", "rho", "rhoE", "rhoU", "rhoV", "nut"]). \
-                 computeVarialbe("p", lambda x, y, rho, e, u, v, nut: (par.kappa-1.) * (e - 0.5*(u**2 + v**2)/rho)).\
-                 computeVarialbe("mach", lambda x, y, rho, e, u, v, nut, p: np.sqrt( (u/rho)**2 + (v/rho)**2) / np.sqrt(par.kappa*p/rho))
+    for i, fpath in enumerate(files.red_converged_results):
+        f_data = RedTecplotFile(fpath, useCache=False)
+                 # renameVariables(["X", "Y", "rho", "rhoE", "rhoU", "rhoV", "nut"]). \
+                 # computeVarialbe("p", lambda x, y, rho, e, u, v, nut: (par.kappa-1.) * (e - 0.5*(u**2 + v**2)/rho)).\
+                 # computeVarialbe("mach", lambda x, y, rho, e, u, v, nut, p: np.sqrt( (u/rho)**2 + (v/rho)**2) / np.sqrt(par.kappa*p/rho))
 
         mach_on_line = mach.interpolate(f_data.ndata.mach[closest_line_ids])
         int_avg = trapz(mach_on_line, line_params)
+
 
         # Plot output mach
         # plt.figure()
@@ -91,6 +93,14 @@ def perform(dirs, files, par):
         # plt.legend([avg_line], ['averge mach %.2lf' % int_avg])
         # plt.show()
 
+        fname = os.path.basename(fpath)
         nname = fname.split('.')[0]+("outmach%.3lf" % int_avg).replace('.', '-')+'.'+fname.split('.')[1]
-        os.rename(dirs.all_data+os.sep+fname, dirs.all_data+os.sep+nname)
+        npath = os.path.dirname(fpath) + os.sep + nname
+        print "renaming " + fpath+" --> " + npath
+        os.rename(fpath, npath)
 
+
+
+# if __name__ == "__main__":
+#     import settings
+#     perform(settings.dirs, settings.files, settings.par)

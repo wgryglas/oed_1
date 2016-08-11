@@ -1,7 +1,7 @@
 __author__ = 'wgryglas'
 
 
-def perform(dirs, files, par):
+def perform(dirs, files, par, organizer):
     """
     Script for creating symbolic links to each result (different angle of attack and outlet mach number) to store them
     in one place
@@ -22,3 +22,8 @@ def perform(dirs, files, par):
         out = dirs.all_data+os.sep+name+".dat"
         print "making symlink:", src, "->", out
         os.symlink(src, out)
+
+
+if __name__ == "__main__":
+    import settings
+    perform(settings.dirs, settings.files, settings.par)

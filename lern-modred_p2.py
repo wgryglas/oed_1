@@ -23,13 +23,13 @@ pointsdraw = join(plt.figure, points, plt.show, argsfor=1)
 
 def compare_original_and_reduced(x1, x2):
     plt.figure()
-    points(x1[:,0], x1[:,1], color="red")
-    points(x2[:,0], x2[:,1], color="blue")
+    points(x1[:,0], x1[:,1], color="red", markersize=20)
+    points(x2[:,0], x2[:,1], color="blue", markersize=20)
 
     for x1, x2 in zip(x1, x2):
         dx = np.ravel(0.9*(x2-x1))
         x1 = np.ravel(x1)
-        plt.arrow(x1[0], x1[1], dx[0], dx[1], color='gray', linewidth=0.2)
+        plt.arrow(x1[0], x1[1], dx[0], dx[1], color='gray', linewidth=1)
     plt.grid(True)
     plt.title('Redukcja za pomoca POD')
     plt.show()
@@ -92,7 +92,16 @@ u = x.T * modes * dinv
 #
 # print np.linalg.norm(modes*(d*u.t) - x)
 #
-x2 = (modes[:,0]*eig_vals[0]*u[:,0].T).T
+
+b = modes[:,0] * poddata
+
+print b
+
+x2 = modes[:,0].dot(*b)
+
+print x2
+
+# x2 = (modes[:,0]*eig_vals[0]*u[:,0].T).T
 #
 #
 compare_original_and_reduced(vecs, x2)
@@ -118,7 +127,6 @@ ry = 0.9*vecrange(vecs[:, 1])/2
 cmap=plt.get_cmap('gist_rainbow')
 for i in range(modes.shape[0]):
     m = modes[:, i]
-    m = m.flat
     plt.arrow(0, 0, rx*m[0], ry*m[1], color=cmap(i*1./modes.shape[0]))
 
 plt.show()

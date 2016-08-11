@@ -1,7 +1,7 @@
 __author__ = 'wgryglas'
 
 
-def perform(dirs, files, par):
+def perform(dirs, files, par, organizer):
     """
     Function makes links only to those results which are being assumed to be converged. All links are then stored
     in separate directory "converged" next to all numerical results.
@@ -31,9 +31,19 @@ def perform(dirs, files, par):
             for line in file.ropen(fnames[0]):
                 if "ResL2" in line:
                     res = reg.search(line)
-                    if res and len(res.groups()) == 3 and res.group(3) is '-':
+                    if res and len(res.groups()) == 3 and res.group(3) == '-':
                         src = dirs.root+os.sep+dir
                         out = dirs.converged_data+os.sep+os.path.basename(dir)
                         print "making sym link ", src, "->", out
                         os.symlink(src, out)
                         break
+                    elif res and len(res.groups())==3:
+                        print res.groups(), dir
+                        break
+
+
+
+
+if __name__ == "__main__":
+    import settings
+    perform(settings.dirs, settings.files, settings.par)

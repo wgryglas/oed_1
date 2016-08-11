@@ -4,7 +4,6 @@ from wg.occ.curve2D import *
 from wg.tools.function import empty
 import matplotlib.pyplot as plt
 from bearded_octo_wookie.RED.RedReader import GetReader
-from settings import *
 
 """
 Script which reads tecplot(?) boundary data and thus extracts boundary nodes coordinates. Those nodes are later
@@ -17,9 +16,9 @@ where N is number of nodes
 """
 __author__ = 'wgryglas'
 
-
-boundaryData = RedBoundaryReader(files.boundary_source).read()
-boundaryData.write(files.boundary_coords, ['X', 'Y'])
+def perform(dirs, files, params, organizer):
+    boundaryData = RedBoundaryReader(files.boundary_source).read()
+    boundaryData.write(files.boundary_coords, ['X', 'Y'])
 
 
 # READ SAVED DATA

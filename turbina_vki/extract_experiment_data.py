@@ -1,13 +1,13 @@
 __author__ = 'wgryglas'
 # -*- coding: utf-8 -*-
 
-
-def perform(dirs, files, par):
+def perform(dirs, files, par, organizer):
     """
     Script which imports data from excel sheet into
     numpy data files for faster access.
     """
     import pyexcel as pe
+    import pyexcel_ods
     import numpy as np
     from wg.tools.system import ask_to_clean_dir
     import os, sys, re
@@ -15,8 +15,7 @@ def perform(dirs, files, par):
     reload(sys)  # Reload does the trick!
     sys.setdefaultencoding('UTF8')
 
-
-    ask_to_clean_dir(dirs.expriment)
+    ask_to_clean_dir(dirs.experiment)
 
 
     sheet = pe.get_sheet(file_name=files.experiment_spreadsheet, sheet_name=par.experiment_sheet_name)
@@ -41,3 +40,9 @@ def perform(dirs, files, par):
         outname = 'press'+pressure+par.experiment_output_suffix
         data = np.array([sheet.column[c+i][7:] for i in range(4)]).T
         np.save(dirs.experiment+os.sep+outname, data)
+
+
+
+# if __name__ == "__main__":
+#     import settings
+#     perform(settings.dirs, settings.files, settings.par)

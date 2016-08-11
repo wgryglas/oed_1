@@ -27,15 +27,30 @@ exp_variable = 2 # <-- (pressure palisade 1, pressure palisade 2, mach palisade 
 p_inf = 1.
 # ------- PREPARE DATA ----------------------------------------------------------------------------------------------- #
 inputData = list()
-for i, fname in enumerate(glob.glob1(dirs.all_data, "*.dat")):
+
+np.seterr(all='raise')
+
+powKappa = (par.kappa - 1.)/par.kappa
+
+i = 0
+for fname in glob.glob1(dirs.all_data, "*.dat"):
+
     if i > maxFiles:
         break
+
+    outmach = float(fname.split("outmach")[1].split(".")[0].replace("-", "."))
+
+    if outmach > 0.5:
+        continue
 
     inputData.append(RedTecplotFile(dirs.all_data+os.sep+fname, useCache=True).
                      renameVariables(["X", "Y", "rho", "rhoE", "rhoU", "rhoV", "nut"]).
                      computeVarialbe("p", lambda x, y, rho, e, u, v, nut: (par.kappa-1.) * (e - 0.5*(u**2 + v**2)/rho)).
-                     computeVarialbe("mach_iso", lambda x, y, rho, e, u, v, nut, p: np.sqrt(np.abs(2./(par.kappa-1.)*((p_inf/p)**((par.kappa-1)/par.kappa)-1.)))))
+                     #computeVarialbe("mach", lambda x, y, rho, e, u, v, nut, p: np.sqrt( (u/rho)**2 + (v/rho)**2) / np.sqrt(par.kappa*p/rho)))
+                     computeVarialbe("mach_iso", lambda x, y, rho, e, u, v, nut, p: np.sqrt( np.abs( 2./(par.kappa -1. ) * ( np.abs(p_inf/p)**(powKappa) - 1. ) ) ) ) ) #(par.kappa-1.)/par.kappa
                      #computeVarialbe('p', '0.4*(rho-0.5*(rhoU**2+rhoV**2)/rho)'))
+
+    i += 1
 
 
 # read boundary nodes
@@ -50,7 +65,7 @@ curves = GetReader(files.geom_get)
 
 # read probe points
 #pX, pY = readBoundaryNodes(probes_coords_file)
-eXY = np.load(dirs.expriment+os.sep+"points.npy")
+eXY = np.load(dirs.experiment+os.sep+"points.npy")
 pX, pY = fit_experiment_porbe_locations_to_mesh_boundary(eXY[:, 0], eXY[:, 1], bX, bY)
 
 
@@ -111,6 +126,7 @@ start_probe_ids = [i for i in spread_id(probe_mesh_ids, num_test_points)]
 
 opt_pnts = np.copy(start_probe_ids)
 n_pnts = len(start_probe_ids)
+
 
 # Compute POD modes
 podmodes = POD.Modes(inputData, num_modes=num_modes)
@@ -194,7 +210,7 @@ plt.show()
 reconstructs = list()
 exp_datas = list()
 for exp_data_file in files.experiment_datas:
-    exp_data = np.ravel(np.load(dirs.expriment+os.sep+exp_data_file)[probe_sort, exp_variable])
+    exp_data = np.ravel(np.load(dirs.experiment+os.sep+exp_data_file)[probe_sort, exp_variable])
     exp_datas.append(exp_data)
     A = varmodes[opt_mesh_ids, :]
     coeffs = np.linalg.lstsq(A, exp_data[opt_pnts])[0]
