@@ -99,7 +99,7 @@ class __files__:
         return glob1(dirs.experiment, "press*")
 
     @property
-    def boundary_source(self): return dirs.root + os.sep + 'aoa-90.0ma1/_sol_surf.dat'
+    def boundary_source(self): return dirs.root + os.sep + 'input_all/A1.2Ma.20/_sol_fin_surf.dat'
 
     @property
     def experiment_spreadsheet(self): return dirs.experiment_root + os.sep + "opracowanie_vki_ls-59.ods"
