@@ -26,7 +26,7 @@ dir0 = '/home/wgryglas/python/avio/naca0012/multi_sweapt_1/all/'
 fname0 = dir0+'input/fin_%d.dat'
 geometryFile = '/home/wgryglas/python/avio/naca0012/multi_sweapt_1/all/name.get'
 boundaryFile = '/home/wgryglas/python/avio/naca0012/multi_sweapt_1/all/boundary.dat'
-fpoints=dir0+'designed_points'
+fpoints = dir0+'designed_points'
 num_files = 121
 
 num_modes = 10

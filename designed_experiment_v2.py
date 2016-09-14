@@ -34,7 +34,6 @@ class require:
 #==============================================================================
 # SETUP INPUT DATA
 #------------------------------------------------------------------------------
-
 fname0 = '/home/wgryglas/python/avio/naca0012/multi_sweapt_1/mach.65/input/fin_%d.dat'
 geometryFile = '/home/wgryglas/python/avio/naca0012/multi_sweapt_1/all/name.get'
 boundaryFile = '/home/wgryglas/python/avio/naca0012/multi_sweapt_1/all/boundary.dat'
@@ -50,7 +49,7 @@ rtfs = [RedReader.RedTecplotFile(fname0%i) for i in range(1,10)]
 #==============================================================================
 num_modes = 9
 modesH = POD.Modes(rtfs, num_modes=num_modes)    
-modesH.writeModes('/tmp/test%d.vti')
+modesH.dumpAllModes('/tmp/test%d.vti')
 
 mesh = cKDTree(modesH.baseRedFile.data[:, :2])
 
