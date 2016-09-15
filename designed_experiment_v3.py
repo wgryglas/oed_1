@@ -30,21 +30,22 @@ fpoints = dir0+'designed_points'
 num_files = 121
 
 num_modes = 10
-work_on_param = 1
+work_on_param = 5 #5 pressure
 num_test_points = 2 * num_modes + 1
 #num_test_positions = 10 * num_test_points + 1
 
 rtfs = [RedReader.RedTecplotFile(fname0%i, useCache=True) for i in range(1,num_files+1)]
     
 #==============================================================================
-# for rtf in rtfs:            
-#     data = rtf.data        
-#     p = (kappa-1.) * data[:,2] * ( data[:,3] - (data[:,4]**2 + data[:,5]**2) / data[:,2] / 2. )
-#     rtf.appendData('p', p)          
+kappa = 1.4
+for rtf in rtfs:
+    data = rtf.data
+    p = (kappa-1.) * data[:,2] * ( data[:,3] - (data[:,4]**2 + data[:,5]**2) / data[:,2] / 2. )
+    rtf.appendData('p', p)
 #==============================================================================
 
 modesH = POD.Modes(rtfs, num_modes=num_modes, split_variables=True)
-modesH.writeModes('/tmp/test%d.vti')
+# modesH.writeModes('/tmp/test%d.vti')
 
 mesh = cKDTree(modesH.baseRedFile.data[:,:2])
 
@@ -277,16 +278,16 @@ for it in range(num_iterations):
     testpoints_modified = np.array([ testpoints for t in test_new_positions ])
     testpoints_modified[:,-1] = test_new_positions
 
-    # A00 = getInformationMatric(testpoints[:-1])
-    # invA00 = np.linalg.inv(A00.T.dot(A00))
-    # trace_0 = np.trace(invA00)
-    # x = np.array( [ getInformationMatric_ComputeSingleCol(t,num_test_points-1)[-1,:] for t in testpoints_modified ] )
-    # w = np.array([invA00.dot(xx) for xx in x])
-    # Aoptimality = np.array([ trace_0 - ww.T.dot(ww)/ (1. + xx.T.dot(ww) )  for ww, xx in zip(w,x) ])
+    A00 = getInformationMatric(testpoints[:-1])
+    invA00 = np.linalg.inv(A00.T.dot(A00))
+    trace_0 = np.trace(invA00)
+    x = np.array( [ getInformationMatric_ComputeSingleCol(t,num_test_points-1)[-1,:] for t in testpoints_modified ] )
+    w = np.array([invA00.dot(xx) for xx in x])
+    Aoptimality = np.array([ trace_0 - ww.T.dot(ww)/ (1. + xx.T.dot(ww) )  for ww, xx in zip(w,x) ])
 
 
     # WG
-    Aoptimality = np.array([getACriterion(getInformationMatric(t)) for t in testpoints_modified])
+    # Aoptimality = np.array([getACriterion(getInformationMatric(t)) for t in testpoints_modified])
 
 
     #plt.semilogy(test_new_positions,Aoptimality)

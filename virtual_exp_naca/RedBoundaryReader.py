@@ -16,7 +16,7 @@ class _DataStore:
 
 class RedBoundaryReader:
     def __init__(self, fname):
-        print "reading"+fname
+        print "reading", fname
         self.fname = fname
         self.data = {}
         self.__vars = None
@@ -39,6 +39,8 @@ class RedBoundaryReader:
         if res:
             self.__curr_data.name = res.group(1)
             self.__read_fun = self.__read_variables
+        else:
+            pass
 
     _re_variables_find = re.compile('VARIABLES\s*=\s*(.*)')
     _re_variables_split = re.compile("\"([^\"]*)\"")
@@ -49,7 +51,6 @@ class RedBoundaryReader:
         self.__read_fun = self.__read_size
 
     _re_size = re.compile("N\s*=\s*([0-9]+)")
-
     def __read_size(self, line):
         self.__curr_data.size = int(self._re_size.findall(line)[0])
         self.__curr_data.data = np.zeros((self.__curr_data.size, len(self.__vars)))

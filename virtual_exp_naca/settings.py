@@ -17,14 +17,17 @@ Settings file for naca0012
 
 class __parameters__:
     def __init__(self):
-        self.num_modes = 5
+        self.num_modes = 10
         self.num_measure_pnts = 2 * self.num_modes + 1
         self.max_data_files = 200
         self.useCache = True
-        self.optimization_variable = "mach_iso"
+        self.optimization_variable = "rhoE"#"mach_iso" #
 
     @property
     def kappa(self): return 1.4
+
+    @property
+    def p_inf(self): return 1.
 
     @property
     def red_output_file_name(self): return "_sol.dat"
@@ -67,6 +70,9 @@ class __dirs__:
     def modes(self): return self.root + os.sep + "modes"
 
     @property
+    def experiment_dir(self): return self.root + os.sep + "virtual_experiment"
+
+    @property
     def reconstructs(self): return self.root + os.sep + "reconstructs"
 
     @property
@@ -82,7 +88,7 @@ class __files__:
     optimization and data preparation
     """
     @property
-    def boundary_coords(self): return dirs.root + os.sep + 'boundaryNodesCoordinates.dat'
+    def boundary_coords(self): return dirs.root + os.sep + 'all/boundary.dat'
 
     @property
     def probes_coords(self): return dirs.root + os.sep + "probe_points"
@@ -91,18 +97,19 @@ class __files__:
     def probes_base_coords(self): return dirs.root + os.sep + "probe_base_points"
 
     @property
-    def geom_get(self): return dirs.root + os.sep + "geom/kaskada_ns.get"
-
-    @property
-    def experiment_datas(self):
-        from glob import glob1
-        return glob1(dirs.experiment, "press*")
+    def geom_get(self): return dirs.root + os.sep + "all/name.get"
 
     @property
     def boundary_source(self): return dirs.root + os.sep + 'input_all/A1.2Ma.20/_sol_fin_surf.dat'
 
     @property
-    def experiment_spreadsheet(self): return dirs.experiment_root + os.sep + "opracowanie_vki_ls-59.ods"
+    def virtual_experiment_boundary_coords(self): return dirs.root + os.sep + 'virtual_experiment/boundary.dat'
+
+    @property
+    def virtual_experiment_data_files(self): return [dirs.experiment_dir + os.sep + 'aoa2.2_ma_0_2-allvar.dat',
+                                                     dirs.experiment_dir + os.sep + 'aoa2_2_ma_0_7-allvar.dat']
+    @property
+    def virtual_experiment_probe_mesh_ids(self): return dirs.experiment_dir + os.sep + 'probe_mesh_ids.npy'
 
     @property
     def red_converged_results(self):
@@ -156,7 +163,7 @@ class __files__:
     def pressure_in_tank_vs_outflow_mach(self): return dirs.experiment_root + os.sep + "pressuer_in_tank_vs_out_mach.txt"
 
     @property
-    def probe_mesh_ids(self): return dirs.experiment + os.sep + "probe_mesh_ids.npy"
+    def probe_mesh_ids(self): return dirs.root + os.sep + "probe_mesh_ids.npy"
 
 
 files = __files__()
@@ -214,6 +221,10 @@ class __data_organizer__:
             yield RedTecplotFile(f, useCache=par.useCache)
             count += 1
 
+    def load_red_file(self, path):
+        from bearded_octo_wookie.RED.RedReader import RedTecplotFile
+        return RedTecplotFile(path, useCache=par.useCache)
+
     def load_modes(self):
         """
         Generator providing modes as tecplot loaded file
@@ -247,17 +258,17 @@ class __data_organizer__:
         self.clear_cache(dirs.reconstructs)
 
     def load_mesh_boundary_coordinates(self):
-        from RedBoundaryReader import readBoundaryNodes
-        return readBoundaryNodes(files.boundary_coords)
+        # from RedBoundaryReader import readBoundaryNodes
+        # return readBoundaryNodes(files.boundary_coords)
+        return self.load_data_file(files.boundary_coords)[:, :2].T
 
     def get_mesh_boundary_ids(self):
         from scipy.spatial import cKDTree
-        bX, bY = self.load_mesh_boundary_coordinates()
-        for idata in self.load_red_data():
-            return cKDTree(np.array([idata.ndata.X, idata.ndata.Y]).T).query(np.array([bX, bY]).T)[1]
+        data = self.load_mesh_boundary_coordinates()
+        return self.load_mesh().query(np.array(data.T))[1]
 
     def load_experiment_points(self):
-        eXY = np.load(dirs.experiment+os.sep+"points.npy")
+        eXY = self.load_data_file(files.virtual_experiment_boundary_coords)
         return eXY[:,0], eXY[:,1]
 
     def load_experiment_data(self, filterFun=None):
@@ -331,6 +342,11 @@ class __data_organizer__:
         from bearded_octo_wookie.RED.RedReader import GetReader
         return GetReader(files.geom_get)
 
+    def get_equaly_distributed_points_over_boundary(self, num_pnts):
+        geom = self.load_get_geometry()
+        return geom.getXYList(np.linspace(0, 1, num_pnts), 1)
+
+
     def get_template_tecplot_file(self):
         if not self.__red_cache__:
             self.__red_cache__ = self.load_selected_red_data().next()
@@ -361,6 +377,10 @@ class __data_organizer__:
         import numpy as np
         return np.load(path)
 
+    def load_data_file(self, path):
+        import numpy as np
+        return np.loadtxt(path)
+
     def get_reconstruct_info(self, fname):
         import re
         print fname
@@ -386,6 +406,8 @@ class __data_organizer__:
         import numpy as np
         return {p[0]:p[1] for p in np.loadtxt(files.pressure_in_tank_vs_outflow_mach)}
 
+    def get_probe_positions(self):
+        return self.load_mesh_boundary_coordinates()
 
 organizer = __data_organizer__()
 

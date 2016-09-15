@@ -16,7 +16,7 @@ def perform(dirs, files, par, organizer):
 
 
     # read probe points
-    pX, pY = organizer.tranform_to_mesh_csys(*organizer.load_experiment_points())
+    pX, pY = organizer.get_probe_positions()
 
 
     # find closest indices of boundary nodes to the probe coords
@@ -31,7 +31,6 @@ def perform(dirs, files, par, organizer):
 
     # find sorting for probes according to curve parametrization
     probe_sort = organizer.sort_points(pX2, pY2)
-
 
     def getSubFisherMatrix(modes, pntIds):
         X = np.matrix(modes[pntIds, :])
@@ -48,12 +47,15 @@ def perform(dirs, files, par, organizer):
             tr = np.inf
         return tr
 
-
     # Perform optimization
 
     # Take initial positions:
-    start_distribution = [i for i in spread_id(probe_sort, par.num_measure_pnts)]
-    start_probe_ids = probe_sort[start_distribution]
+    # find closest probe point to equidistributed points
+    from scipy.spatial import cKDTree
+    probeMesh = cKDTree(np.array([pX2, pY2]).T)
+    equalProbeIds = probeMesh.query(organizer.get_equaly_distributed_points_over_boundary(par.num_measure_pnts))[1]
+
+    start_probe_ids = equalProbeIds
     start_mesh_ids = probe_mesh_ids[start_probe_ids]
 
     organizer.save(files.inistial_mesh_ids, start_mesh_ids)
@@ -123,11 +125,11 @@ def perform(dirs, files, par, organizer):
 
 
     # Plot result of optimization
-    plt.figure()
-    plt.plot(mesh.data[opt_mesh_ids, 0], mesh.data[opt_mesh_ids, 1], 'r.', markersize=30)
-    plt.plot(mesh.data[start_mesh_ids, 0], mesh.data[start_mesh_ids, 1], 'g.', markersize=20)
-    plt.plot(mesh.data[probe_mesh_ids, 0], mesh.data[probe_mesh_ids, 1], 'b.')
-    plt.show()
+    # plt.figure()
+    # plt.plot(mesh.data[opt_mesh_ids, 0], mesh.data[opt_mesh_ids, 1], 'r.', markersize=30)
+    # plt.plot(mesh.data[start_mesh_ids, 0], mesh.data[start_mesh_ids, 1], 'g.', markersize=20)
+    # plt.plot(mesh.data[probe_mesh_ids, 0], mesh.data[probe_mesh_ids, 1], 'b.')
+    # plt.show()
 
 
 if __name__ == "__main__":
