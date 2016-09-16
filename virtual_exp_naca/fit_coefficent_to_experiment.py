@@ -14,8 +14,6 @@ def perform(dirs, files, par, organizer):
 
         opt_data = probeData[opt_probe_pnts]
 
-        A = np.array([m.ndata[exp_name][opt_mesh_ids] for m in modes]).T
-
 
     for tankPresure, exp_data in organizer.load_selected_experiment_data():
         for exp_name in par.experiment_variable_mapping:

@@ -8,9 +8,8 @@ from wg.tools.system import ask_to_clean_dir
 reload(sys)
 sys.setdefaultencoding('UTF8')
 
-__author__ = 'wgryglas'
 """
-Settings file for naca0012
+Settings file for cascade
 """
 
 # ------------------ PARAMETERS ----------------------------------------
@@ -52,7 +51,7 @@ class __dirs__:
         self.root = base
 
     @property
-    def all_data(self): return self.root + os.sep + 'all/input'
+    def all_data(self): return self.root + os.sep + 'all'
 
     @property
     def converged_data(self): return self.root + os.sep + 'converged'
@@ -69,7 +68,7 @@ class __dirs__:
     @property
     def results(self): return "set_"+str(1)
 
-dirs = __dirs__('/home/wgryglas/AVIO/data/naca0012')
+dirs = __dirs__('/home/wgryglas/AVIO/data/cascade')
 
 
 # ------------------ FILES ----------------------------------------
@@ -79,7 +78,7 @@ class __files__:
     optimization and data preparation
     """
     @property
-    def boundary_coords(self): return dirs.root + os.sep + 'all/boundary.dat'
+    def boundary_coords(self): return dirs.root + os.sep + 'boundary.dat'
 
     @property
     def probes_coords(self): return dirs.root + os.sep + "probe_points"
@@ -88,10 +87,10 @@ class __files__:
     def probes_base_coords(self): return dirs.root + os.sep + "probe_base_points"
 
     @property
-    def geom_get(self): return dirs.root + os.sep + "all/name.get"
+    def geom_get(self): return dirs.root + os.sep + "geom.get"
 
     @property
-    def boundary_source(self): return dirs.root + os.sep + 'input_all/A1.2Ma.20/_sol_fin_surf.dat'
+    def boundary_source(self): return dirs.root + os.sep + 'aoa-100.5p0.6/_sol_surf.dat'
 
     @property
     def virtual_experiment_boundary_coords(self): return dirs.root + os.sep + 'virtual_experiment/boundary.dat'
@@ -226,14 +225,13 @@ class __data_organizer__:
         self.clear_cache(dirs.reconstructs)
 
     def load_mesh_boundary_coordinates(self):
-        # from RedBoundaryReader import readBoundaryNodes
-        # return readBoundaryNodes(files.boundary_coords)
-        return self.load_data_file(files.boundary_coords)[:, :2].T
+        from RedBoundaryReader import readBoundaryNodes
+        return readBoundaryNodes(files.boundary_coords)
 
     def get_mesh_boundary_ids(self):
         from scipy.spatial import cKDTree
         data = self.load_mesh_boundary_coordinates()
-        return self.load_mesh().query(np.array(data.T))[1]
+        return self.load_mesh().query(np.array(data).T)[1]
 
     def load_experiment_points(self):
         eXY = self.load_data_file(files.virtual_experiment_boundary_coords)
@@ -315,7 +313,7 @@ class __data_organizer__:
 
         XY = [[x, y] for x, y in zip(X, Y)]
 
-        sort = np.argsort(curves.getParamList(XY, 1))
+        sort = np.argsort(curves.getParamList(XY, 2))
         return sort
 
     def save(self, path, data):
