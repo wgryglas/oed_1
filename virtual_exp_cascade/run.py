@@ -11,4 +11,4 @@ import extract_probe_ids_in_virtual_experiment_mesh
 import extract_virtual_exp_boundary_nodes
 import reconstruct_set_of_virtual_experiments
 
-run_modules([reconstruct_set_of_virtual_experiments])
+run_modules(reconstruct_set_of_virtual_experiments)

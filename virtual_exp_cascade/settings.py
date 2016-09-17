@@ -372,10 +372,10 @@ def run_modules(*modules):
     :return: none
     """
     # decide if user provided list or var. num. of argunments
-    if len(modules) == 1:
-        module_list = modules[0]
-    else:
+    if hasattr(modules, "__iter__"):
         module_list = modules
+    else:
+        module_list = [modules]
 
     for module in module_list:
         if hasattr(module, "__call__"):

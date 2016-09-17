@@ -7,8 +7,10 @@ def getSortedCoords(bX, bY):
 
     left = [p for p in bSet]
 
-    pnts.append(bSet[0])
-    left.pop(0)
+    start = np.argmax(bX) # this will set trailing edge as 0 in parameter space
+
+    pnts.append(bSet[start])
+    left.pop(start)
 
     for i in range(1, len(bX)):
         p = pnts[-1]
@@ -30,3 +32,14 @@ def getSortedCoords(bX, bY):
     pnts = np.array(pnts)
 
     return pnts
+
+
+from settings import dirs, files, organizer
+
+bX, bY = organizer.load_mesh_boundary_coordinates()
+
+sortedPnts = getSortedCoords(bX, bY)[::-1] #assure right order
+
+with open(dirs.root+"/orderedbndcoords.dat","w") as f:
+    for p in sortedPnts:
+        f.write("(%lf,\t%lf),\n" % (p[0], p[1]))

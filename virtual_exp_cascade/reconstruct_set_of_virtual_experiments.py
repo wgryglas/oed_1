@@ -122,8 +122,8 @@ def perform(dirs, files, par, organizer):
         for xx, yy in zip(x, data[fine_mesh_base_ids][init_boundary_ids]):
             plt.plot([xx, xx], [yy, 1e6], "k--", lw=1)
 
-        for xx, yy in zip(x[opt_boundary_ids], data[fine_mesh_base_ids][opt_boundary_ids]):
-            plt.plot([xx, xx], [-1e6, yy], "k--", lw=1)
+        # for xx, yy in zip(x[opt_boundary_ids], data[fine_mesh_base_ids][opt_boundary_ids]):
+        #     plt.plot([xx, xx], [-1e6, yy], "k--", lw=1)
 
         plt.plot(paramSpaceBase[sortBase], data[fine_mesh_base_ids][sortBase],'-', color="black", label='"Real"')
         plt.plot(x, y, ".", color="blue")
