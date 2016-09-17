@@ -87,17 +87,20 @@ class __files__:
     def probes_base_coords(self): return dirs.root + os.sep + "probe_base_points"
 
     @property
-    def geom_get(self): return dirs.root + os.sep + "geom.get"
+    def geom_get(self): return dirs.root + os.sep + "geom/geometry.get"
 
     @property
     def boundary_source(self): return dirs.root + os.sep + 'aoa-100.5p0.6/_sol_surf.dat'
 
     @property
-    def virtual_experiment_boundary_coords(self): return dirs.root + os.sep + 'virtual_experiment/boundary.dat'
+    def virtual_experiment_boundary_source(self): return dirs.experiment_dir + os.sep + '_out_surf.dat'
 
     @property
-    def virtual_experiment_data_files(self): return [dirs.experiment_dir + os.sep + 'aoa2.2_ma_0_2-allvar.dat',
-                                                     dirs.experiment_dir + os.sep + 'aoa2_2_ma_0_7-allvar.dat']
+    def virtual_experiment_boundary_coords(self): return dirs.experiment_dir + os.sep + 'boundary.dat'
+
+    @property
+    def virtual_experiment_data_files(self): return [dirs.experiment_dir + os.sep + '_out-allvar.dat']
+
     @property
     def virtual_experiment_probe_mesh_ids(self): return dirs.experiment_dir + os.sep + 'probe_mesh_ids.npy'
 
