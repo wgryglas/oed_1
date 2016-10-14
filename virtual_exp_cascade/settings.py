@@ -2,6 +2,7 @@
 import sys
 import os
 import numpy as np
+import itertools
 
 from wg.tools.system import ask_to_clean_dir
 
@@ -18,11 +19,11 @@ class __parameters__:
     def __init__(self):
         self.num_modes = 10
         self.num_measure_pnts = 2 * self.num_modes + 1
-        self.max_data_files = 200
+        self.max_data_files = 1e4
         self.useCache = True
         self.optimization_variable = "p"
         self.standard_deviation = 0.05
-        self.virtual_exp_distortion_iteration = 100
+        self.virtual_exp_distortion_iteration = 10
 
     @property
     def kappa(self): return 1.4
@@ -68,6 +69,9 @@ class __dirs__:
     @property
     def results(self): return "set_"+str(1)
 
+    @property
+    def figures(self): return self.root + "/out/figures"
+
 dirs = __dirs__('/home/wgryglas/AVIO/data/cascade')
 
 
@@ -77,6 +81,11 @@ class __files__:
     Class providing paths to certain files required during
     optimization and data preparation
     """
+    @property
+    def modes_test_data_file(self): return {r'\noindent Anagle of attack $0^0$\newline Outlet pressure $0.6$':dirs.all_data + os.sep + "aoa-90-0p0-6.dat",
+                                            r'\noindent Anagle of attack $10^0$\newline Outlet pressure $0.8$':dirs.all_data + os.sep + "aoa-100-5p0-8.dat",
+                                            r'\noindent Anagle of attack $25^0$\newline Outlet pressure $0.95$':dirs.all_data + os.sep + "aoa-125p0-95.dat"}
+
     @property
     def boundary_coords(self): return dirs.root + os.sep + 'boundary.dat'
 
@@ -167,6 +176,7 @@ class __data_organizer__:
     def __init__(self):
         self.__red_cache__ = None
         self.__get_cache__ = None
+        self.markers = itertools.cycle(['^','o','D','s'])
 
     @staticmethod
     def read_mode_id(fname):
@@ -358,6 +368,17 @@ class __data_organizer__:
 
     def get_probe_positions(self):
         return self.load_mesh_boundary_coordinates()
+
+    def get_figure_setup(self):
+        return {"figsize":(10, 7), "dpi":360}
+
+    def get_big_figure_setup(self):
+        return {"figsize":(15, 8), "dpi":360}
+
+    @property
+    def next_marker(self):
+        return self.markers.next()
+
 
 organizer = __data_organizer__()
 

@@ -8,8 +8,8 @@ __author__ = 'wgryglas'
 
 points = fixargument(plt.plot, marker='o', linestyle='', markersize=3)
 thickLines = fixargument(plt.plot, marker='', linewidth=3)
-plt.show = join(lambda : plt.get_current_fig_manager().full_screen_toggle(), plt.show)
-
+#plt.show = join(lambda : plt.get_current_fig_manager().full_screen_toggle(), plt.show)
+plt.figure = fixargument(plt.figure, figsize=(9, 4.5))
 
 plotnow = join(plt.figure, points, lambda title: plt.title(title), plt.show, argsFor={1: 'all', 2: 'title'})
 
@@ -20,8 +20,8 @@ plotnow = join(plt.figure, points, lambda title: plt.title(title), plt.show, arg
 def fun(X, a, b, c):
     res = []
     for x in X:
-        res.append(a*x**2 + np.sin(b*x) + c)
-        #res.append(b*np.sin(a*x**2) + c*x)
+        res.append(a*x**2 + np.sin(b*x) +c)
+        # res.append(b*np.sin(a*x**2) + c*x)
     return np.array(res)
 
 # ==================================================================================================================== #
@@ -48,12 +48,16 @@ for i in range(1, 3):
 # ==================================================================================================================== #
 # plot input data
 # ==================================================================================================================== #
+f = plt.figure()
+ax = [f.add_subplot('121'), f.add_subplot('122')]
 # f, ax = plt.subplots(1, 2)
-# for i in range(count):
-#     ax[0].plot(x, Y[:, i], 'o-', markersize=3)
-#
-# ax[0].grid(True)
-# ax[1].grid(True)
+for i in range(count):
+    ax[0].plot(x, Y[:, i], 'o-', markersize=3)
+
+for i in range(2):
+    ax[i].set_xlabel("x")
+    ax[i].set_ylabel("y")
+    ax[i].grid(True)
 
 # ==================================================================================================================== #
 # Compute modes
@@ -63,14 +67,15 @@ V, E = md.compute_POD_matrices_snaps_method(Y, range(n_mods))
 # ==================================================================================================================== #
 # plot modes
 # ==================================================================================================================== #
-# for i in range(n_mods):
-#     ax[1].plot(x, V[:, i], 'o')
-#
+for i in range(n_mods):
+    ax[1].plot(x, V[:, i], 'o')
+
 # ax[0].set_title('Rozwiazania dla kombinacji parametrow a,b,c=1,2')
 # ax[1].set_title('Wektory bazowe(POD)')
 #
-# plt.show()
-
+plt.tight_layout()
+plt.savefig('/home/wgryglas/Desktop/prezentacja_esn/source_data.pdf', transparent=True)
+plt.show()
 # ==================================================================================================================== #
 # Pnts location optimization:
 # ==================================================================================================================== #
@@ -152,41 +157,63 @@ while run:
 # ==================================================================================================================== #
 # Generate measurement:
 # ==================================================================================================================== #
-coeffs = [(1.2, 1.8, 1.5)]#(1, 2, 2), (2, 1, 1)]
 
-exact = [fun(x, *c) for c in coeffs]
-eMax = []
-eMin = []
-for e in exact:
-    eMax.append(max(e))
-    eMin.append(min(e))
+nSamples = 20
 
-eMax = max(eMax)
-eMin = min(eMin)
+coeffs = (1.2, 1.8, 1.5)#(1, 2, 2), (2, 1, 1)]
+
+exact = fun(x, *coeffs)
+eMax = max(exact)
+eMin = min(exact)
 
 rand = fixargument(np.random.normal, loc=0, scale=0.05*(eMax-eMin), size=1)
 
-allMeasure = np.copy(exact)
-for i in range(len(coeffs)):
+allMeasure = np.array([exact for i in range(nSamples)])
+for i in range(nSamples):
     for j in range(npoints):
         allMeasure[i, j] = allMeasure[i, j] + rand()
 
 # ==================================================================================================================== #
 # Reconstruct and plot optimal
-# # ==================================================================================================================== #
-# A = V[opt_pnts, :]
-# dataX = x[opt_pnts]
-#
-# f, ax = plt.subplots(1, 2)
-#
+# ==================================================================================================================== #
+A = V[opt_pnts, :]
+dataX = x[opt_pnts]
+
+f = plt.figure()
+ax = [f.add_subplot('121'), f.add_subplot('122')]
+
 # legends=[]
 # for e in exact:
 #     legends.append(ax[1].plot(x, e, 'b--')[0])
-#
-# ax[1].vlines(dataX, eMin, eMax, linestyles='--', colors='gray')
-#
-# legend_str = ['Exact', 'Measurement', 'Reconstruction']
-#
+
+ax[1].vlines(dataX, eMin, eMax, linestyles='--', colors='gray')
+
+recons = list()
+for measure in allMeasure:
+    dataY = measure[opt_pnts]
+    T = np.linalg.lstsq(A, dataY)[0]
+    T = np.matrix([T])
+    Ynew = V*T.T
+    Ynew = np.ravel(Ynew)
+    recons.append(Ynew)
+
+recons = np.array(recons)
+y = np.mean(recons, axis=0)
+stdderiv = np.std(recons, axis=0)
+y1 = y - stdderiv
+y2 = y + stdderiv
+stdderiv_opt = stdderiv
+
+legends=[]
+legends.append(ax[1].plot(x, exact, 'b-', linewidth=1.5)[0])
+legends.append(ax[1].plot(x, y, 'ko', marker='o', markersize=5, linewidth=1.5, alpha=1)[0])
+legends.append(ax[1].plot(x, y1, color='k', linestyle='--', linewidth=0.5)[0])
+ax[1].plot(x, y2, color='k', linestyle='--', linewidth=0.5)
+ax[1].fill_between(x, y1, y2, where=y2 >= y1, facecolor='k', interpolate=True, alpha=0.2)
+ax[1].set_xlim([-0.1, 3.1])
+ax[1].set_ylim([1, 12])
+ax[1].set_xlabel('x')
+ax[1].set_ylabel('y')
 # for measure in allMeasure:
 #     dataY = measure[opt_pnts]
 #     T = np.linalg.lstsq(A, dataY)[0]
@@ -197,22 +224,46 @@ for i in range(len(coeffs)):
 #     legends.append(ax[1].plot(x, Ynew, 'r-')[0])
 #
 # ax[1].set_title('Optimal positions')
-# ax[1].legend(legends, np.repeat(legend_str, len(legends)/3))
-#
+ax[1].legend(legends, ['Exact', 'Reconstruction', 'Std. deviation'], loc=2)
+
+
+
 # ==================================================================================================================== #
-# Reconstruct nad plot equal distribution
+# Reconstruct and plot equal distribution
 # ==================================================================================================================== #
 # legends=[]
 # for e in exact:
 #     legends.append(ax[0].plot(x, e, 'b--')[0])
-#
-# n_measure = len(opt_pnts)
-# di = int(npoints/(n_measure+1))
-# dataId = [di*(i+1) for i in range(n_measure)]
-# dataX = x[dataId]
-#
-# ax[0].vlines(dataX, eMin, eMax, linestyles='--', colors='gray')
-#
+
+n_measure = len(opt_pnts)
+di = int(npoints/(n_measure-1))
+dataId = [di*i for i in range(n_measure-1)]
+dataId.append(npoints-1)
+
+ax[0].vlines(x[dataId], eMin, eMax, linestyles='--', colors='gray')
+
+from scipy.interpolate import interp1d
+
+interpRecon = list()
+for measure in allMeasure:
+    inter = interp1d(x[dataId], measure[dataId], kind="linear")
+    interpRecon.append(inter(x))
+
+y = np.mean(interpRecon, axis=0)
+stdderiv = np.std(interpRecon, axis=0)
+y1 = y - stdderiv
+y2 = y + stdderiv
+
+legends=[]
+legends.append(ax[0].plot(x, exact, 'b-', linewidth=2)[0])
+legends.append(ax[0].plot(x, y, 'ko', markersize=5, linewidth=1)[0])
+legends.append(ax[0].plot(x, y1, color='k', linestyle='--', linewidth=0.5)[0])
+ax[0].plot(x, y2, color='k', linestyle='--', linewidth=0.5)
+ax[0].fill_between(x, y1, y2, where=y2 >= y1, facecolor='k', interpolate=True, alpha=0.2)
+ax[0].set_xlim([-0.1, 3.1])
+ax[0].set_ylim([1, 12])
+ax[0].set_xlabel('x')
+ax[0].set_ylabel('y')
 # for measure in allMeasure:
 #     dataY = measure[dataId]
 #     A = V[dataId, :]
@@ -224,10 +275,20 @@ for i in range(len(coeffs)):
 #     legends.append(ax[0].plot(x, Ynew, 'r-')[0])
 #
 # ax[0].set_title('Equal distribution')
-# ax[0].legend(legends, np.repeat(legend_str, len(legends)/3))
-#
-# plt.show()
+ax[0].legend(legends, ['Exact', 'L. interpolation', 'Std. deviation'], loc=2)
 
+plt.tight_layout()
+plt.savefig('/home/wgryglas/Desktop/prezentacja_esn/recon_comparison.pdf', transparent=True)
+plt.show()
+
+plt.figure()
+plt.legend([plt.plot(x, stdderiv, 'g-', marker='v')[0], plt.plot(x, stdderiv_opt, 'r-', marker='o')[0]], ['Interpolation', 'Reconstruction'])
+plt.xlabel('x')
+plt.ylabel('Std. deviation')
+plt.grid()
+plt.savefig('/home/wgryglas/Desktop/prezentacja_esn/std_dev_comparison.pdf', transparent=True)
+plt.show()
+exit()
 
 
 # ==================================================================================================================== #

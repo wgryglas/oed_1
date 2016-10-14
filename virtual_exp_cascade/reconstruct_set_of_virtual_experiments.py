@@ -3,10 +3,16 @@ def perform(dirs, files, par, organizer):
     from numpy import random
     import numpy as np
     from scipy.spatial import cKDTree
+    from scipy.interpolate import interp1d
 
     import matplotlib.pyplot as plt
 
     modes = [m for m in organizer.load_modes()]
+
+    def argsortIndices(X, Y, geom):
+        paramspace = np.array(geom.getParamList([[x,y] for x,y in zip(X, Y)], 1))
+        return np.argsort(paramspace)
+
 
     bIds = organizer.get_mesh_boundary_ids()
     bX, bY = organizer.load_mesh_boundary_coordinates()
@@ -37,14 +43,24 @@ def perform(dirs, files, par, organizer):
     boundaryBaseMesh = cKDTree(np.array([bX, bY]).T)
     optXY = base_mesh.data[opt_mesh_ids]
     opt_boundary_ids = boundaryBaseMesh.query(optXY)[1]
+    opt_boundary_ids_sort = argsortIndices(bX[opt_boundary_ids], bY[opt_boundary_ids], geom)
+
 
     initXY = base_mesh.data[init_mesh_ids]
     init_boundary_ids = boundaryBaseMesh.query(initXY)[1]
+    init_boundary_ids = init_boundary_ids[argsortIndices(bX[init_boundary_ids], bY[init_boundary_ids], geom)]
 
 
     veBIds = organizer.load(files.virtual_experiment_probe_mesh_ids)
 
     fine_mesh_opt_ids = fine_mesh.query(optXY)[1]
+
+
+    plotPntsParam = np.array(geom.getXYList(np.linspace(0, 1, 100), 1))
+    boundaryMeshPlotIds = boundaryBaseMesh.query(plotPntsParam)[1]
+    plotPntsParam = np.array(geom.getParamList([[x,y] for x,y in zip(bX[boundaryMeshPlotIds], bY[boundaryMeshPlotIds])], 1))
+    baseMeshPlotIds = boundaryMeshPlotIds[np.argsort(plotPntsParam)]
+
 
     for datafile in files.virtual_experiment_data_files:
         reddata = organizer.load_red_file(datafile)
@@ -76,17 +92,12 @@ def perform(dirs, files, par, organizer):
 
             realizations.append(result)
 
-            realizations_linear.append(dist_data[init_boundary_ids])
+            realizations_linear.append(interp1d(iParamSpace, dist_data[init_boundary_ids], kind="linear",bounds_error=False)(paramSpaceBase))
 
-            # for c, m in zip(coeffs, modes):
-            #     result += c*m.ndata[par.optimization_variable][bIds]
+            # realizations_linear.append(dist_data[init_boundary_ids])
 
-            # plt.plot(paramSpaceBase[sortBase], result[sortBase], '-', color=(0.5,0.5,0.5,0.1))
 
-            # plt.plot(reddata.ndata.X[fine_mesh_opt_ids], opt_data, '.', color="red", markersize=10)
-            # plt.plot(reddata.ndata.X[fine_mesh_opt_ids], dist_data, '.', color="pink", markersize=5)
-
-            # plt.plot(bX, data[veBIds], '.', color="black", markersize=5)
+        plt.figure(**organizer.get_big_figure_setup())
 
         x = paramSpaceBase
         y = np.mean(realizations, axis=0)
@@ -94,54 +105,55 @@ def perform(dirs, files, par, organizer):
         y1 = y - stdderiv
         y2 = y + stdderiv
 
-        # for xx, yy in zip(x[init_boundary_ids], data[fine_mesh_base_ids][init_boundary_ids]):
+        # for xx, yy in zip(x[opt_boundary_ids], data[fine_mesh_base_ids][opt_boundary_ids]):
         #     plt.plot([xx, xx], [yy, 1e6], "k--", lw=1)
+        plt.plot(x[opt_boundary_ids][opt_boundary_ids_sort], data[fine_mesh_base_ids][opt_boundary_ids][opt_boundary_ids_sort], 'ko', markerfacecolor='None', )
 
-        for xx, yy in zip(x[opt_boundary_ids], data[fine_mesh_base_ids][opt_boundary_ids]):
-            plt.plot([xx, xx], [-1e6, yy], "k--", lw=1)
+        # for xx, yy in zip(x[opt_boundary_ids], data[fine_mesh_base_ids][opt_boundary_ids]):
+        #     plt.plot([xx, xx], [-1e6, yy], "k--", lw=1)
 
-        plt.plot(paramSpaceBase[sortBase], data[fine_mesh_base_ids][sortBase],'-', color="black", label='"Real"')
-        plt.plot(x, y, ".", color="blue")
+        plt.plot(paramSpaceBase[sortBase], data[fine_mesh_base_ids][sortBase], 'k-', label='Viratual experiment')
+        plt.plot(x[sortBase], y[sortBase], "k--", markerfacecolor='k', label="Reconstructed")
 
-        plt.plot(x[sortBase], y1[sortBase], 'b--', lw=1)
-        plt.plot(x[sortBase], y2[sortBase], 'b--', lw=1)
-        plt.fill_between(x[sortBase], y1[sortBase], y2[sortBase], where=y2[sortBase] >= y1[sortBase], facecolor='b', interpolate=True, alpha=0.2)
+        plt.plot(x[sortBase], y1[sortBase], 'k--', lw=1, label='Std. deviation')
+        plt.plot(x[sortBase], y2[sortBase], 'k--', lw=1)
+        plt.fill_between(x[sortBase], y1[sortBase], y2[sortBase], where=y2[sortBase] >= y1[sortBase], facecolor='k', interpolate=True, alpha=0.2, label='Std. deviation')
 
         ymin = min(y)
         ymax = max(y)
         plt.axes().set_ylim([ymin-0.1*(ymax-ymin), ymax+0.1*(ymax-ymin)])
 
+        plt.legend()
+        plt.grid(True)
+        plt.savefig(dirs.figures+"/parmeter_reconstruction.png")
         plt.show()
 
-        x = paramSpaceBase[init_boundary_ids]
+
+        plt.figure(**organizer.get_big_figure_setup())
+
+        x = paramSpaceBase
         y = np.mean(realizations_linear, axis=0)
         stdderiv = np.std(realizations_linear, axis=0)
         y1 = y - stdderiv
         y2 = y + stdderiv
 
-        for xx, yy in zip(x, data[fine_mesh_base_ids][init_boundary_ids]):
-            plt.plot([xx, xx], [yy, 1e6], "k--", lw=1)
+        # for xx, yy in zip(x[init_boundary_ids], data[fine_mesh_base_ids][init_boundary_ids]):
+        #     plt.plot([xx, xx], [yy, 1e6], "k--", lw=1)
+        plt.plot(x[init_boundary_ids], data[fine_mesh_base_ids][init_boundary_ids], 'ko', markerfacecolor='None', )
 
-        # for xx, yy in zip(x[opt_boundary_ids], data[fine_mesh_base_ids][opt_boundary_ids]):
-        #     plt.plot([xx, xx], [-1e6, yy], "k--", lw=1)
 
-        plt.plot(paramSpaceBase[sortBase], data[fine_mesh_base_ids][sortBase],'-', color="black", label='"Real"')
-        plt.plot(x, y, ".", color="blue")
+        plt.plot(paramSpaceBase[sortBase], data[fine_mesh_base_ids][sortBase], 'k-', label='Viratual experiment')
+        plt.plot(x[sortBase], y[sortBase], "k--", markerfacecolor='k', label="Uniform linear")
 
-        plt.plot(x, y1, 'b--', lw=1)
-        plt.plot(x, y2, 'b--', lw=1)
-        plt.fill_between(x, y1, y2, where=y2 >= y1, facecolor='b', interpolate=True, alpha=0.2)
+        plt.plot(x[sortBase], y1[sortBase], 'k--', lw=1, label='Std. deviation')
+        plt.plot(x[sortBase], y2[sortBase], 'k--', lw=1)
+        plt.fill_between(x[sortBase], y1[sortBase], y2[sortBase], where=y2[sortBase] >= y1[sortBase], facecolor='k', interpolate=True, alpha=0.2)
 
         ymin = min(y)
         ymax = max(y)
         plt.axes().set_ylim([ymin-0.1*(ymax-ymin), ymax+0.1*(ymax-ymin)])
 
+        plt.legend()
+        plt.grid(True)
+        plt.savefig(dirs.figures+"/parmeter_linear.png")
         plt.show()
-
-        # x = bX
-        # plt.plot(reddata.ndata.X[fine_mesh_base_ids][sortBase], data[fine_mesh_base_ids][sortBase],'b-', label='"Real"')
-        # plt.plot(x, y, ".", color="black")
-        # plt.plot(x, y1 , 'b--', lw=1)
-        # plt.plot(x, y2 , 'b--', lw=1)
-        # plt.fill_between(x, y1, y2, where=y2>=y1, facecolor='b', interpolate=True, alpha=0.2)
-        # plt.show()

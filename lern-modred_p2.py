@@ -6,33 +6,37 @@ created on sat feb 28 15:40:43 2015
 """
 
 import numpy as np
+from matplotlib.pyplot import axes
 import modred as mr
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
+from matplotlib2tikz import save as tikz_save
 
 from wg.tools.function import *
 from wg.tools.plot import *
 #plt.show = empty
 
-plt.figure = fixargument(plt.figure, figsize=(10, 10))
+# plt.figure = fixargument(plt.figure, figsize=(5, 3.2))
 
 points = fixargument(plt.plot, override=False, color="red", linestyle="", marker="o", markersize=5)
 
 pointsdraw = join(plt.figure, points, plt.show, argsfor=1)
 
 
-def compare_original_and_reduced(x1, x2):
-    plt.figure()
-    points(x1[:,0], x1[:,1], color="red", markersize=20)
-    points(x2[:,0], x2[:,1], color="blue", markersize=20)
+def compare_original_and_reduced(x1, x2, a):
+
+    a.plot(x1[:,0], x1[:,1], color="red", markersize=2, marker="o", linestyle="")
+    a.plot(x2[:,0], x2[:,1], color="blue", markersize=2, marker="o", linestyle="")
+    # points(x1[:,0], x1[:,1], color="red", markersize=10)
+    # points(x2[:,0], x2[:,1], color="blue", markersize=10)
 
     for x1, x2 in zip(x1, x2):
         dx = np.ravel(0.9*(x2-x1))
         x1 = np.ravel(x1)
-        plt.arrow(x1[0], x1[1], dx[0], dx[1], color='gray', linewidth=1)
-    plt.grid(True)
-    plt.title('Redukcja za pomoca POD')
-    plt.show()
+        a.arrow(x1[0], x1[1], dx[0], dx[1], color='k', linewidth=1)
+    a.grid(True)
+    a.set_xlabel("$x_1$")
+    a.set_ylabel("$x_2$")
 
 
 # settings
@@ -43,11 +47,11 @@ k = 0.1
 
 # arbitrary data
 
-meanx, meany = (1, 1)
-f = np.array((meanx, meany))
+sigx, sigy = (1, 1)
+f = np.array((sigx, sigy))
 
 
-rand = fixargument(np.random.multivariate_normal, mean=[0, 0], cov=[[meanx, 0.8], [0.8, meany]])
+rand = fixargument(np.random.multivariate_normal, mean=[0, 0], cov=[[sigx, 0.8], [0.8, sigy]])
 
 #rand_norm = fixargument(np.random.multivariate_normal, mean=[0], cov=[[1]])
 #rand = lambda : [rand_norm()[0], rand_norm()[0]]
@@ -73,7 +77,7 @@ num_modes = 2
 
 modes, eig_vals = mr.compute_POD_matrices_snaps_method(poddata, range(num_modes))
 
-mods = np.array(modes)
+modes = np.array(modes)
 
 print "modes shape", modes.shape
 print "modes: ", modes
@@ -93,18 +97,39 @@ u = x.T * modes * dinv
 # print np.linalg.norm(modes*(d*u.t) - x)
 #
 
-b = modes[:,0] * poddata
+b = np.array([modes[:, 0].dot(a) for a in poddata.T])
 
-print b
 
-x2 = modes[:,0].dot(*b)
+x2 = np.array([modes[:, 0]*c for c in b])
 
 print x2
 
 # x2 = (modes[:,0]*eig_vals[0]*u[:,0].T).T
 #
 #
-compare_original_and_reduced(vecs, x2)
+fig = plt.figure()
+
+axes2 = fig.add_subplot(1, 2, 1)
+axes2.plot(vecs[:, 0], vecs[:, 1], color='b', linestyle="", marker=".", markersize=2)
+xmean = np.mean(vecs[:, 0])
+ymean = np.mean(vecs[:, 1])
+axes2.arrow(xmean, ymean, modes[0, 0], modes[1, 0], color='k', linewidth=2, width=0.01)
+axes2.arrow(xmean, ymean, modes[0, 1], modes[1, 1], color='k', linewidth=2, width=0.01)
+axes2.grid()
+axes2.set_xlabel("$x_1$")
+axes2.set_ylabel("$x_2$")
+axes2.set_aspect('equal')
+
+axes1 = fig.add_subplot(1, 2, 2)
+compare_original_and_reduced(vecs, x2, axes1)
+axes1.set_aspect('equal')
+
+fig.tight_layout()
+
+tikz_save('/home/wgryglas/Desktop/prezentacja_esn/reduction_exmple.tex', figureheight='180', figurewidth='180')
+plt.show()
+
+exit()
 #
 #
 # @assert_arg_iterable(excepion=true, args=(0,1), kwargs=("x", "y"))
@@ -185,7 +210,7 @@ print xnew
 exit()
 
 
-xc = np.matrix([[meanx], [meany]])
+xc = np.matrix([[sigx], [sigy]])
 
 c = np.linalg.lstsq(modes, xc)[0]
 
