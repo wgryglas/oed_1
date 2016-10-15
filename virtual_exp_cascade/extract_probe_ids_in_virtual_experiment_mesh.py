@@ -4,7 +4,11 @@ def perform(dirs, files, par, organizer):
 
     veBX, veBY = organizer.load_experiment_points()
 
-    bX, bY = organizer.load_mesh_boundary_coordinates()
+    # bX, bY = organizer.load_mesh_boundary_coordinates()
+
+    coarseMesh = organizer.load_mesh()
+
+    probe_test_ids = organizer.load(files.probe_mesh_ids)
 
     baseData = organizer.load_red_file(files.virtual_experiment_data_files[0])
 
@@ -17,7 +21,7 @@ def perform(dirs, files, par, organizer):
 
     fineBoundaryMesh = cKDTree(np.array([veBX, veBY]).T)
 
-    coarseInFine = fineBoundaryMesh.query(np.array([bX, bY]).T)[1]
+    coarseInFine = fineBoundaryMesh.query(coarseMesh.data[probe_test_ids,:])[1]
 
     cBIds = bIds[coarseInFine]
 

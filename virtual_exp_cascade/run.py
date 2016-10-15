@@ -12,7 +12,15 @@ import extract_virtual_exp_boundary_nodes
 import reconstruct_set_of_virtual_experiments
 import plot_modes_error
 
-# run_modules(compute_modes, optimize_positions, reconstruct_set_of_virtual_experiments)
+
+
+# run_modules(compute_modes, optimize_positions, extract_probe_ids_in_virtual_experiment_mesh, reconstruct_set_of_virtual_experiments)
+
+# run_modules(optimize_positions, extract_probe_ids_in_virtual_experiment_mesh, reconstruct_set_of_virtual_experiments)
+
+# run_modules(optimize_positions, reconstruct_set_of_virtual_experiments)
+
+# run_modules(plot_optimized_points)
 
 run_modules(reconstruct_set_of_virtual_experiments)
 

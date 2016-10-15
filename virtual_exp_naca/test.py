@@ -23,4 +23,4 @@ import extract_probe_ids_in_virtual_experiment_mesh
 
 # run_modules([extract_probe_ids_in_virtual_experiment_mesh])
 
-run_modules([compute_modes, optimize_positions, reconstruct_set_of_virtual_experiments])
+run_modules([reconstruct_set_of_virtual_experiments])#compute_modes, optimize_positions, plot_optimized_points, reconstruct_set_of_virtual_experiments

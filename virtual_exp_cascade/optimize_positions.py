@@ -21,6 +21,7 @@ def perform(dirs, files, par, organizer):
     # find closest indices of boundary nodes to the probe coords
     bProbeIds = cKDTree(np.array([bX, bY]).T).query(np.array([pX, pY]).T)[1]
     probe_mesh_ids = boundary_ids[bProbeIds]
+    probe_mesh_ids = probe_mesh_ids[::5]
     pX2 = mesh.data[probe_mesh_ids, 0]
     pY2 = mesh.data[probe_mesh_ids, 1]
 

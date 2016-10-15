@@ -4,8 +4,12 @@ def perform(dirs, files, par, organizer):
     from numpy import random
     import numpy as np
     from scipy.spatial import cKDTree
-
+    from scipy.interpolate import interp1d
+    from wg.tools.function import fixargument
     import matplotlib.pyplot as plt
+    import os.path
+    plt.figure = fixargument(plt.figure, override=True, figsize=(12, 6))
+
 
     modes = [m for m in organizer.load_modes()]
 
@@ -48,6 +52,9 @@ def perform(dirs, files, par, organizer):
     fine_mesh_opt_ids = fine_mesh.query(optXY)[1]
 
     for datafile in files.virtual_experiment_data_files:
+
+        name = os.path.basename(datafile).replace('.', '-')
+
         reddata = organizer.load_red_file(datafile)
 
         data = reddata.ndata[par.optimization_variable]
@@ -59,7 +66,7 @@ def perform(dirs, files, par, organizer):
         opt_data = data[fine_mesh_opt_ids]
 
         realizations = list()
-        realizations_linear=list()
+        realizations_linear = list()
 
         for i in range(par.virtual_exp_distortion_iteration):
             normal = random.standard_normal(len(bnd_data))
@@ -77,7 +84,8 @@ def perform(dirs, files, par, organizer):
 
             realizations.append(result)
 
-            realizations_linear.append(dist_data[init_boundary_ids])
+            interp = interp1d(paramSpaceBase[init_boundary_ids], dist_data[init_boundary_ids])
+            realizations_linear.append(interp(paramSpaceBase))
 
             # for c, m in zip(coeffs, modes):
             #     result += c*m.ndata[par.optimization_variable][bIds]
@@ -95,52 +103,68 @@ def perform(dirs, files, par, organizer):
         y1 = y - stdderiv
         y2 = y + stdderiv
 
+        stdderiv_opt = stdderiv
+
         # for xx, yy in zip(x[init_boundary_ids], data[fine_mesh_base_ids][init_boundary_ids]):
         #     plt.plot([xx, xx], [yy, 1e6], "k--", lw=1)
 
         for xx, yy in zip(x[opt_boundary_ids], data[fine_mesh_base_ids][opt_boundary_ids]):
-            plt.plot([xx, xx], [-1e6, yy], "k--", lw=1)
+            plt.plot([xx, xx], [-1e6, yy], "k--", lw=1, alpha=0.5)
 
-        plt.plot(paramSpaceBase[sortBase], data[fine_mesh_base_ids][sortBase],'-', color="black", label='"Real"')
-        plt.plot(x, y, ".", color="blue")
+        # plt.plot(x, y, "-", lw=1, color="r")
 
-        plt.plot(x, y1, 'b--', lw=1)
-        plt.plot(x, y2, 'b--', lw=1)
-        plt.fill_between(x, y1, y2, where=y2 >= y1, facecolor='b', interpolate=True, alpha=0.2)
+        plt.plot(x, y1, 'r--', lw=1, label='Reconstruction')
+        plt.plot(x, y2, 'r--', lw=1)
+        plt.fill_between(x, y1, y2, where=y2 >= y1, facecolor='r', interpolate=True, alpha=0.2)
 
         ymin = min(y)
         ymax = max(y)
         plt.axes().set_ylim([ymin-0.1*(ymax-ymin), ymax+0.1*(ymax-ymin)])
 
-        plt.show()
-
-        x = paramSpaceBase[init_boundary_ids]
+        x = paramSpaceBase
         y = np.mean(realizations_linear, axis=0)
         stdderiv = np.std(realizations_linear, axis=0)
         y1 = y - stdderiv
         y2 = y + stdderiv
 
-        for xx, yy in zip(x, data[fine_mesh_base_ids][init_boundary_ids]):
-            plt.plot([xx, xx], [yy, 1e6], "k--", lw=1)
+        for xx, yy in zip(x[init_boundary_ids], data[fine_mesh_base_ids][init_boundary_ids]):
+            plt.plot([xx, xx], [yy, 1e6], "k--", lw=1, alpha=0.5)
 
-        # for xx, yy in zip(x[opt_boundary_ids], data[fine_mesh_base_ids][opt_boundary_ids]):
+        # for xx, yy in zip(x, data[fine_mesh_base_ids][init_boundary_ids]):
         #     plt.plot([xx, xx], [-1e6, yy], "k--", lw=1)
 
-        plt.plot(paramSpaceBase[sortBase], data[fine_mesh_base_ids][sortBase],'-', color="black", label='"Real"')
-        plt.plot(x, y, ".", color="blue")
+        # plt.plot(paramSpaceBase[sortBase], data[fine_mesh_base_ids][sortBase],'-', color="black", label='"Real"')
+        # plt.plot(x, y, "-", lw=1, color="green")
 
-        plt.plot(x, y1, 'b--', lw=1)
-        plt.plot(x, y2, 'b--', lw=1)
-        plt.fill_between(x, y1, y2, where=y2 >= y1, facecolor='b', interpolate=True, alpha=0.2)
+        plt.plot(x, y1, 'g--', lw=1, label='Interpolation')
+        plt.plot(x, y2, 'g--', lw=1)
+        plt.fill_between(x, y1, y2, where=y2 >= y1, facecolor='g', interpolate=True, alpha=0.2)
 
         ymin = min(y)
         ymax = max(y)
         plt.axes().set_ylim([ymin-0.1*(ymax-ymin), ymax+0.1*(ymax-ymin)])
 
+        plt.plot(paramSpaceBase[sortBase], data[fine_mesh_base_ids][sortBase], '.', lw=1, color="black", label='"Real"')
+        plt.legend(loc=2)
+        plt.xlabel("Position on the profile, LE=0.5")
+        plt.ylabel("Dimensionless total pressure")
+
+        dirpath = '/home/wgryglas/Documents/konferencje/rok2016/porto/presentation/img'
+
+        plt.savefig(dirpath+'/press_profile_airfoil_'+name+'.pdf', transparent=True)
         plt.show()
 
-        # x = bX
-        # plt.plot(reddata.ndata.X[fine_mesh_base_ids][sortBase], data[fine_mesh_base_ids][sortBase],'b-', label='"Real"')
+
+        plt.plot(paramSpaceBase, stdderiv_opt, 'ro-', lw=2, label='Reconstruction')
+        plt.plot(paramSpaceBase, stdderiv, 'gv-', lw=2, label='Interpolation')
+        plt.grid()
+        plt.xlabel("Position on the profile, LE=0.5")
+        plt.ylabel("Std. deviation of pressure")
+        plt.legend(loc=2)
+        plt.savefig(dirpath+'/press_airfoil_std_dev_'+name+'.pdf', transparent=True)
+        plt.show()
+
+        # plt.plot(reddata.ndata.x[fine_mesh_base_ids][sortbase], data[fine_mesh_base_ids][sortbase],'b-', label='"real"')
         # plt.plot(x, y, ".", color="black")
         # plt.plot(x, y1 , 'b--', lw=1)
         # plt.plot(x, y2 , 'b--', lw=1)

@@ -23,7 +23,7 @@ class __parameters__:
         self.useCache = True
         self.optimization_variable = "p"
         self.standard_deviation = 0.05
-        self.virtual_exp_distortion_iteration = 10
+        self.virtual_exp_distortion_iteration = 200
 
     @property
     def kappa(self): return 1.4
@@ -300,7 +300,11 @@ class __data_organizer__:
 
     def load_get_geometry(self):
         from bearded_octo_wookie.RED.RedReader import GetReader
-        return GetReader(files.geom_get)
+
+        if not self.__get_cache__:
+            self.__get_cache__ = GetReader(files.geom_get)
+
+        return self.__get_cache__
 
     def get_equaly_distributed_points_over_boundary(self, num_pnts):
         geom = self.load_get_geometry()
@@ -326,7 +330,7 @@ class __data_organizer__:
 
         XY = [[x, y] for x, y in zip(X, Y)]
 
-        sort = np.argsort(curves.getParamList(XY, 2))
+        sort = np.argsort(curves.getParamList(XY, 1))
         return sort
 
     def save(self, path, data):
