@@ -25,19 +25,31 @@ def perform(dirs, files, par, organizer):
     plt.rc('text', usetex=True)
 
     for p in exp_data:
-        plt.figure()
-        l1, = plt.plot(bX[bsort], boundary_data[p][bsort], "-r", markersize=3)
-        l2, = plt.plot(pX[opt_pnts], exp_data[p][opt_pnts], ".", color="black", markersize=30)
-        l3, = plt.plot(pX, exp_data[p], ".", color="green", markersize=15)
 
-        plt.title(r'$Outflow\, mach\, number\,'+str(mapping[p])+'$')
-        plt.xlabel(r'$\frac{x}{chord\, length} [-]$')
-        plt.ylabel(r'$Mach [-]$')
-        plt.axes().grid(True)
-        #plt.legend([l1, l2, l3], [r'$Reconstructed\, data$', r'Experiment\, data\, used\, in\, reconstruction$', r'$All\, measured\, data$'])
+        if par.plot:
+            plt.figure()
+            l1, = plt.plot(bX[bsort], boundary_data[p][bsort], "-r", markersize=3)
+            l2, = plt.plot(pX[opt_pnts], exp_data[p][opt_pnts], ".", color="black", markersize=30)
+            l3, = plt.plot(pX, exp_data[p], ".", color="green", markersize=15)
 
-        plt.show()
+            plt.title(r'$Outflow\, mach\, number\,'+str(mapping[p])+'$')
+            plt.xlabel(r'$\frac{x}{chord\, length} [-]$')
+            plt.ylabel(r'$Mach [-]$')
+            plt.axes().grid(True)
 
+            #plt.legend([l1, l2, l3], [r'$Reconstructed\, data$', r'Experiment\, data\, used\, in\, reconstruction$', r'$All\, measured\, data$'])
+
+            plt.show()
+
+        if par.save_plot_data:
+            organizer.save_plot_data(files.plot_boundary_reconstruct("bnd_reconstruct_out_mach_number-"+str(mapping[p])),
+                                     {"x": bX[bsort], "y": boundary_data[p][bsort]})
+
+            organizer.save_plot_data(files.plot_boundary_reconstruct("exp_opt_out_mach_number-"+str(mapping[p])),
+                                     {"x": pX[opt_pnts], "y": exp_data[p][opt_pnts]})
+
+            organizer.save_plot_data(files.plot_boundary_reconstruct("exp_out_mach_number-"+str(mapping[p])),
+                                     {"x": pX, "y": exp_data[p]})
 
 
     # for i, (rec, exp_data, value) in enumerate(zip(reconstructs, exp_datas, tankPresures)):

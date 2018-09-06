@@ -123,11 +123,23 @@ def perform(dirs, files, par, organizer):
 
 
     # Plot result of optimization
-    plt.figure()
-    plt.plot(mesh.data[opt_mesh_ids, 0], mesh.data[opt_mesh_ids, 1], 'r.', markersize=30)
-    plt.plot(mesh.data[start_mesh_ids, 0], mesh.data[start_mesh_ids, 1], 'g.', markersize=20)
-    plt.plot(mesh.data[probe_mesh_ids, 0], mesh.data[probe_mesh_ids, 1], 'b.')
-    plt.show()
+    if par.plot:
+        plt.figure()
+        plt.plot(mesh.data[opt_mesh_ids, 0], mesh.data[opt_mesh_ids, 1], 'r.', markersize=30)
+        plt.plot(mesh.data[start_mesh_ids, 0], mesh.data[start_mesh_ids, 1], 'g.', markersize=20)
+        plt.plot(mesh.data[probe_mesh_ids, 0], mesh.data[probe_mesh_ids, 1], 'b.')
+        plt.show()
+
+    if par.save_plot_data:
+        sort = organizer.sort_points(bX, bY)
+
+        organizer.save_plot_data(files.plot_curve_xy, {"x": bX[sort], "y": bY[sort]})
+
+        organizer.save_plot_data(files.plot_probe_pnts, {"x": mesh.data[probe_mesh_ids, 0], "y": mesh.data[probe_mesh_ids, 1]})
+
+        organizer.save_plot_data(files.plot_initial_pnts, {"x": mesh.data[start_mesh_ids, 0], "y": mesh.data[start_mesh_ids, 1]})
+
+        organizer.save_plot_data(files.plot_opt_pnts, {"x": mesh.data[opt_mesh_ids, 0],    "y": mesh.data[opt_mesh_ids, 1]})
 
 
 if __name__ == "__main__":

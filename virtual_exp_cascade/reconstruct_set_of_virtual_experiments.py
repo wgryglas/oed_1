@@ -1,3 +1,6 @@
+from samba.dcerpc.dns import soa_record
+
+
 def perform(dirs, files, par, organizer):
     from settings import par, files, dirs, organizer
     from numpy import random
@@ -7,10 +10,14 @@ def perform(dirs, files, par, organizer):
     import os.path
     import matplotlib.pyplot as plt
 
+    dirpath = '/home/wgryglas/Documents/studia doktoranckie/seminaria/za2017/figures/cascade'
+
     from wg.tools.function import fixargument
     plt.figure = fixargument(plt.figure, override=True, figsize=(12, 6))
 
     modes = [m for m in organizer.load_modes()]
+    modes = [modes[i] for i in range(8)]
+
 
     def argsortIndices(X, Y, geom):
         paramspace = np.array(geom.getParamList([[x,y] for x,y in zip(X, Y)], 1))
@@ -77,7 +84,7 @@ def perform(dirs, files, par, organizer):
         opt_data = data[fine_mesh_opt_ids]
 
         realizations = list()
-        realizations_linear=list()
+        realizations_linear = list()
 
         for i in range(par.virtual_exp_distortion_iteration):
             normal = random.standard_normal(len(bnd_data))
@@ -102,36 +109,57 @@ def perform(dirs, files, par, organizer):
             # realizations_linear.append(dist_data[init_boundary_ids])
 
 
-        plt.figure()
+        y_exact = data[fine_mesh_base_ids]
 
         x = paramSpaceBase
         y = np.mean(realizations, axis=0)
         stdderiv = np.std(realizations, axis=0)
         y1 = y - stdderiv
         y2 = y + stdderiv
-
         stdderiv_opt = stdderiv
 
-        # for xx, yy in zip(x[opt_boundary_ids], data[fine_mesh_base_ids][opt_boundary_ids]):
-        #     plt.plot([xx, xx], [yy, 1e6], "k--", lw=1)
-        # plt.plot(x[opt_boundary_ids][opt_boundary_ids_sort], data[fine_mesh_base_ids][opt_boundary_ids][opt_boundary_ids_sort], 'ko', markerfacecolor='None', )
+        if par.save_plot_data:
+            #save reconstruction on boundary
+            organizer.save_plot_data(files.plot_reconstruction_result(name),
+                                     {"param": x[sortBase],
+                                      "x": bX[sortBase],
+                                      "y_mean": y[sortBase],
+                                      "y_min": y1[sortBase],
+                                      "y_max": y2[sortBase],
+                                      "y_exact": y_exact[sortBase],
+                                      "stddev": stdderiv[sortBase]})
 
-        for xx, yy in zip(x[opt_boundary_ids], data[fine_mesh_base_ids][opt_boundary_ids]):
-            plt.plot([xx, xx], [-1e6, yy], "k--", lw=1, alpha=0.5)
+            organizer.save_plot_data(files.plot_reconstruction_result_in_measurement(name),
+                                     {"param": x[opt_boundary_ids],
+                                      "x": bX[opt_boundary_ids],
+                                      "y_mean": y[opt_boundary_ids],
+                                      "y_min": y1[opt_boundary_ids],
+                                      "y_max": y2[opt_boundary_ids],
+                                      "y_exact":y_exact[opt_boundary_ids],
+                                      "stddev": stdderiv[opt_boundary_ids]})
 
-        plt.plot(paramSpaceBase[sortBase], data[fine_mesh_base_ids][sortBase], 'k.', markersize=4, label='"Real"')
 
-        # plt.plot(x[sortBase], y[sortBase], "k--", markerfacecolor='k', label="Reconstructed")
+        if par.plot:
+            plt.figure()
+            # for xx, yy in zip(x[opt_boundary_ids], data[fine_mesh_base_ids][opt_boundary_ids]):
+            #     plt.plot([xx, xx], [yy, 1e6], "k--", lw=1)
+            # plt.plot(x[opt_boundary_ids][opt_boundary_ids_sort], data[fine_mesh_base_ids][opt_boundary_ids][opt_boundary_ids_sort], 'ko', markerfacecolor='None', )
 
-        plt.plot(x[sortBase], y1[sortBase], 'r--', lw=1, label='Reconstructed')
-        plt.plot(x[sortBase], y2[sortBase], 'r--', lw=1)
-        plt.fill_between(x[sortBase], y1[sortBase], y2[sortBase], where=y2[sortBase] >= y1[sortBase], facecolor='r', interpolate=True, alpha=0.2)
+            for xx, yy in zip(x[opt_boundary_ids], data[fine_mesh_base_ids][opt_boundary_ids]):
+                plt.plot([xx, xx], [-1e6, yy], "k--", lw=1, alpha=0.5)
 
-        ymin = min(y)
-        ymax = max(y)
-        plt.axes().set_ylim([ymin-0.1*(ymax-ymin), ymax+0.1*(ymax-ymin)])
+            plt.plot(paramSpaceBase[sortBase], data[fine_mesh_base_ids][sortBase], 'k.', markersize=4, label='"Real"')
 
-        # plt.savefig(dirs.figures+"/parmeter_reconstruction.png")
+            # plt.plot(x[sortBase], y[sortBase], "k--", markerfacecolor='k', label="Reconstructed")
+
+            plt.plot(x[sortBase], y1[sortBase], 'r--', lw=1, label='Reconstructed')
+            plt.plot(x[sortBase], y2[sortBase], 'r--', lw=1)
+            plt.fill_between(x[sortBase], y1[sortBase], y2[sortBase], where=y2[sortBase] >= y1[sortBase], facecolor='r', interpolate=True, alpha=0.2)
+
+            ymin = min(y)
+            ymax = max(y)
+            plt.axes().set_ylim([ymin-0.1*(ymax-ymin), ymax+0.1*(ymax-ymin)])
+
 
         x = paramSpaceBase
         y = np.mean(realizations_linear, axis=0)
@@ -139,37 +167,63 @@ def perform(dirs, files, par, organizer):
         y1 = y - stdderiv
         y2 = y + stdderiv
 
-        for xx, yy in zip(x[init_boundary_ids], data[fine_mesh_base_ids][init_boundary_ids]):
-            plt.plot([xx, xx], [yy, 1e6], "k--", lw=1, alpha=0.5)
-        # plt.plot(x[init_boundary_ids], data[fine_mesh_base_ids][init_boundary_ids], 'ko', markerfacecolor='None', )
+        if par.save_plot_data:
+            organizer.save_plot_data(files.plot_lininterpolation_result(name),
+                                     {"param": x[sortBase],
+                                      "x": bX[sortBase],
+                                      "y_mean": y[sortBase],
+                                      "y_min": y1[sortBase],
+                                      "y_max": y2[sortBase],
+                                      "y_exact":y_exact[sortBase],
+                                      "stddev": stdderiv[sortBase]})
 
-        # plt.plot(paramSpaceBase[sortBase], data[fine_mesh_base_ids][sortBase], 'k-', label='Viratual experiment')
-        # plt.plot(x[sortBase], y[sortBase], "k--", markerfacecolor='k', label="Interpolation")
+            organizer.save_plot_data(files.plot_lininterpolation_result_in_measurement(name),
+                                     {"param": x[init_boundary_ids],
+                                      "x": bX[init_boundary_ids],
+                                      "y_mean": y[init_boundary_ids],
+                                      "y_min": y1[init_boundary_ids],
+                                      "y_max": y2[init_boundary_ids],
+                                      "y_exact": y_exact[init_boundary_ids],
+                                      "stddev": stdderiv[init_boundary_ids]})
 
-        plt.plot(x[sortBase], y1[sortBase], 'g--', lw=1, label="Interpolation")
-        plt.plot(x[sortBase], y2[sortBase], 'g--', lw=1)
+        if par.plot:
+            for xx, yy in zip(x[init_boundary_ids], data[fine_mesh_base_ids][init_boundary_ids]):
+                plt.plot([xx, xx], [yy, 1e6], "k--", lw=1, alpha=0.5)
+            # plt.plot(x[init_boundary_ids], data[fine_mesh_base_ids][init_boundary_ids], 'ko', markerfacecolor='None', )
+
+            # plt.plot(paramSpaceBase[sortBase], data[fine_mesh_base_ids][sortBase], 'k-', label='Viratual experiment')
+            # plt.plot(x[sortBase], y[sortBase], "k--", markerfacecolor='k', label="Interpolation")
+
+            plt.plot(x[sortBase], y1[sortBase], 'g--', lw=1, label="Interpolation")
+            plt.plot(x[sortBase], y2[sortBase], 'g--', lw=1)
 
 
-        plt.fill_between(x[sortBase], y1[sortBase], y2[sortBase], where=y2[sortBase] >= y1[sortBase], facecolor='g', interpolate=True, alpha=0.2)
+            #smth wrong?
+            #plt.fill_between(x[sortBase], y1[sortBase], y2[sortBase], where=y2[sortBase] >= y1[sortBase], facecolor='g', interpolate=True, alpha=0.2)
 
-        ymin = min(y)
-        ymax = max(y)
-        plt.axes().set_ylim([ymin-0.1*(ymax-ymin), ymax+0.1*(ymax-ymin)])
-        plt.legend()
-        plt.grid(True)
-        plt.xlabel("Position on the profile, LE=0.5")
-        plt.ylabel("Dimensionless total pressure")
-        dirpath = '/home/wgryglas/Documents/konferencje/rok2016/porto/presentation/img'
-        # plt.savefig(dirpath+'/press_cascade_profile_'+name+'.pdf', transparent=True)
-        plt.show()
+            ymin = min(y)
+            ymax = max(y)
+            plt.axes().set_ylim([ymin-0.1*(ymax-ymin), ymax+0.1*(ymax-ymin)])
 
+            plt.legend()
+            plt.grid(True)
+            plt.xlabel("Position on the profile, LE=0.5")
+            plt.ylabel("Dimensionless total pressure")
+            plt.show()
 
-        plt.plot(x[sortBase], stdderiv_opt[sortBase], 'r-', lw=2, label='Reconstruction')
-        plt.plot(x[sortBase], stdderiv[sortBase], 'g-', lw=2, label='Interpolation')
-        plt.grid()
-        plt.xlabel("Position on the profile, LE=0.5")
-        plt.ylabel("Std. deviation of pressure")
-        plt.legend(loc=2)
-        # plt.savefig(dirpath+'/press_cascade_std_dev_'+name+'.pdf', transparent=True)
-        plt.show()
+        if par.save_plot_data:
+            organizer.save_plot_data(files.plot_exact_result(name),
+                                     {"param": paramSpaceBase[sortBase],
+                                      "x": bX[sortBase],
+                                      "y": y_exact[sortBase]})
+
+        if par.plot:
+            plt.plot(x[sortBase], stdderiv_opt[sortBase], 'r-', lw=2, label='Reconstruction')
+            plt.plot(x[sortBase], stdderiv[sortBase], 'g-', lw=2, label='Interpolation')
+            plt.grid()
+            plt.xlabel("Position on the profile, LE=0.5")
+            plt.ylabel("Std. deviation of pressure")
+            plt.legend(loc=2)
+            # plt.savefig(dirpath+'/press_cascade_std_dev_'+name+'.pdf', transparent=True)
+            plt.show()
 

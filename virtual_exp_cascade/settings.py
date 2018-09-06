@@ -13,6 +13,21 @@ sys.setdefaultencoding('UTF8')
 Settings file for cascade
 """
 
+def computeACriterion(M):
+        try:
+            D = np.linalg.eigvalsh(M)
+            tr = np.ravel(np.sum(1./D))
+            if tr < 0:
+                tr = np.inf
+        except Exception as e:
+            print e
+            tr = np.inf
+        return tr
+
+def computeConditionNumber(M):
+    return np.linalg.cond(M)
+
+
 # ------------------ PARAMETERS ----------------------------------------
 
 class __parameters__:
@@ -21,9 +36,13 @@ class __parameters__:
         self.num_measure_pnts = 2 * self.num_modes + 1
         self.max_data_files = 1e4
         self.useCache = True
-        self.optimization_variable = "p"
+        self.optimization_variable = "mach_iso" #"p"
         self.standard_deviation = 0.05
         self.virtual_exp_distortion_iteration = 200
+        self.plot = True
+        self.save_plot_data = True
+        self.criterionFunction = computeACriterion
+        # self.criterionFunction = computeConditionNumber
 
     @property
     def kappa(self): return 1.4
@@ -72,6 +91,11 @@ class __dirs__:
     @property
     def figures(self): return self.root + "/out/figures"
 
+    @property
+    def save_plot_dir(self): return "/home/wgryglas/Documents/studia doktoranckie/articles/doe_pod_paper/figures/cascade/new_data"
+
+
+
 dirs = __dirs__('/home/wgryglas/AVIO/data/cascade')
 
 
@@ -82,9 +106,9 @@ class __files__:
     optimization and data preparation
     """
     @property
-    def modes_test_data_file(self): return {r'\noindent Anagle of attack $0^0$\newline Outlet pressure $0.6$':dirs.all_data + os.sep + "aoa-90-0p0-6.dat",
-                                            r'\noindent Anagle of attack $10^0$\newline Outlet pressure $0.8$':dirs.all_data + os.sep + "aoa-100-5p0-8.dat",
-                                            r'\noindent Anagle of attack $25^0$\newline Outlet pressure $0.95$':dirs.all_data + os.sep + "aoa-125p0-95.dat"}
+    def modes_test_data_file(self): return {r'\noindent Anagle of attack $0^0$\newline Outlet pressure $0.6$': dirs.all_data + os.sep + "aoa-90-0p0-6.dat",
+                                            r'\noindent Anagle of attack $10^0$\newline Outlet pressure $0.8$': dirs.all_data + os.sep + "aoa-100-5p0-8.dat",
+                                            r'\noindent Anagle of attack $25^0$\newline Outlet pressure $0.95$': dirs.all_data + os.sep + "aoa-125p0-95.dat"}
 
     @property
     def boundary_coords(self): return dirs.root + os.sep + 'boundary.dat'
@@ -168,6 +192,24 @@ class __files__:
     def probe_mesh_ids(self): return dirs.root + os.sep + "probe_mesh_ids.npy"
 
 
+    @property
+    def plot_profile(self): return dirs.save_plot_dir + os.sep + "profile.csv"
+
+    @property
+    def plot_init_opt_pnts(self): return dirs.save_plot_dir + os.sep + ("points_np%d_nm%d.csv" % (par.num_measure_pnts, par.num_modes)) # "points.csv"
+
+    def plot_exact_result(self, data_name): return dirs.save_plot_dir + os.sep + data_name + os.sep + "exact.csv"
+
+    def plot_reconstruction_result(self, data_name): return dirs.save_plot_dir + os.sep + data_name + os.sep + "reconstructionResult.csv"
+
+    def plot_reconstruction_result_in_measurement(self, data_name): return dirs.save_plot_dir + os.sep + data_name + os.sep + "reconstructionResult-measurement_positions.csv"
+
+    def plot_lininterpolation_result(self, data_name): return dirs.save_plot_dir + os.sep + data_name + os.sep + "linInterpResult.csv"
+
+    def plot_lininterpolation_result_in_measurement(self, data_name): return dirs.save_plot_dir + os.sep + data_name + os.sep + "linInterpResult-measurement_positions.csv"
+
+
+
 files = __files__()
 
 
@@ -248,12 +290,12 @@ class __data_organizer__:
 
     def load_experiment_points(self):
         eXY = self.load_data_file(files.virtual_experiment_boundary_coords)
-        return eXY[:,0], eXY[:,1]
+        return eXY[:, 0], eXY[:, 1]
 
     def load_virtual_exp_mesh(self):
         red = self.load_red_file(files.virtual_experiment_data_files[0])
         from scipy.spatial import cKDTree
-        return cKDTree(red.data[:,:2])
+        return cKDTree(red.data[:, :2])
 
     def load_experiment_data(self, filterFun=None):
         """
@@ -337,6 +379,11 @@ class __data_organizer__:
         import numpy as np
         np.save(path, data)
 
+    def save_plot_data(self, path, data_dictionary):
+        import pandas
+        from wg.tools.system import savefile
+        savefile(pandas.DataFrame(data_dictionary).to_csv, path, index=False)
+
     def load(self, path):
         import numpy as np
         return np.load(path)
@@ -368,16 +415,16 @@ class __data_organizer__:
 
     def load_pressure_to_mach_mapping(self):
         import numpy as np
-        return {p[0]:p[1] for p in np.loadtxt(files.pressure_in_tank_vs_outflow_mach)}
+        return {p[0]: p[1] for p in np.loadtxt(files.pressure_in_tank_vs_outflow_mach)}
 
     def get_probe_positions(self):
         return self.load_mesh_boundary_coordinates()
 
     def get_figure_setup(self):
-        return {"figsize":(10, 7), "dpi":360}
+        return {"figsize":(10, 7), "dpi": 360}
 
     def get_big_figure_setup(self):
-        return {"figsize":(15, 8), "dpi":360}
+        return {"figsize":(15, 8), "dpi": 360}
 
     @property
     def next_marker(self):

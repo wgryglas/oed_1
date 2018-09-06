@@ -97,7 +97,7 @@ def perform(dirs, files, par, organizer):
                 tmp_opt2 = np.append(tmp_opt, j)
 
                 testPos = probe_mesh_ids[tmp_opt2]
-                criterion = computeACriterion(getSubFisherMatrix(varmodes, testPos))
+                criterion = par.criterionFunction(getSubFisherMatrix(varmodes, testPos))
 
                 if criterion < 0:
                     continue

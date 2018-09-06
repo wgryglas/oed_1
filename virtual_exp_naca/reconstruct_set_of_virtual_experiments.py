@@ -1,4 +1,3 @@
-
 def perform(dirs, files, par, organizer):
     from settings import par, files, dirs, organizer
     from numpy import random
@@ -10,46 +9,42 @@ def perform(dirs, files, par, organizer):
     import os.path
     plt.figure = fixargument(plt.figure, override=True, figsize=(12, 6))
 
-
     modes = [m for m in organizer.load_modes()]
 
-    bIds = organizer.get_mesh_boundary_ids()
-    bX, bY = organizer.load_mesh_boundary_coordinates()
+    b_ids = organizer.get_mesh_boundary_ids()
+    bx, by = organizer.load_mesh_boundary_coordinates()
 
     geom = organizer.load_get_geometry()
-    paramSpaceBase = np.array(geom.getParamList([[x,y] for x,y in zip(bX, bY)], 1))
-    sortBase = np.argsort(paramSpaceBase)
+    param_space_base = np.array(geom.getParamList([[x, y] for x, y in zip(bx, by)], 1))
+    sort_base = np.argsort(param_space_base)
 
     base_mesh = organizer.load_mesh()
 
     opt_mesh_ids = organizer.load(files.optimized_mesh_ids)
     init_mesh_ids = organizer.load(files.inistial_mesh_ids)
 
-    iX, iY = base_mesh.data[init_mesh_ids, 0], base_mesh.data[init_mesh_ids, 1]
-    iParamSpace = np.array(geom.getParamList([[x,y] for x,y in zip(iX, iY)], 1))
-
+    ix, iy = base_mesh.data[init_mesh_ids, 0], base_mesh.data[init_mesh_ids, 1]
+    iParamSpace = np.array(geom.getParamList([[x, y] for x, y in zip(ix, iy)], 1))
 
     fine_mesh = organizer.load_virtual_exp_mesh()
-    fine_mesh_bIds = fine_mesh.query(organizer.load_data_file(files.virtual_experiment_boundary_coords))[1]
-    fine_mesh_base_ids = fine_mesh.query(np.array([bX, bY]).T)[1]
-    fine_mesh_init_ids = fine_mesh.query(np.array([iX, iY]).T)[1]
+    fine_mesh_b_ids = fine_mesh.query(organizer.load_data_file(files.virtual_experiment_boundary_coords))[1]
+    fine_mesh_base_ids = fine_mesh.query(np.array([bx, by]).T)[1]
+    fine_mesh_init_ids = fine_mesh.query(np.array([ix, iy]).T)[1]
 
+    fbx, fby = fine_mesh.data[fine_mesh_b_ids, 0], fine_mesh.data[fine_mesh_b_ids, 1]
+    param_space_fine = np.array(geom.getParamList([[x, y] for x, y in zip(fbx, fby)], 1))
+    sortFine = np.argsort(param_space_fine)
 
-    fbX,fbY = fine_mesh.data[fine_mesh_bIds,0], fine_mesh.data[fine_mesh_bIds,1]
-    paramSpaceFine = np.array(geom.getParamList([[x,y] for x,y in zip(fbX, fbY)], 1))
-    sortFine = np.argsort(paramSpaceFine)
+    boundary_base_mesh = cKDTree(np.array([bx, by]).T)
+    opt_xy = base_mesh.data[opt_mesh_ids]
+    opt_boundary_ids = boundary_base_mesh.query(opt_xy)[1]
 
-    boundaryBaseMesh = cKDTree(np.array([bX, bY]).T)
-    optXY = base_mesh.data[opt_mesh_ids]
-    opt_boundary_ids = boundaryBaseMesh.query(optXY)[1]
-
-    initXY = base_mesh.data[init_mesh_ids]
-    init_boundary_ids = boundaryBaseMesh.query(initXY)[1]
-
+    init_xy = base_mesh.data[init_mesh_ids]
+    init_boundary_ids = boundary_base_mesh.query(init_xy)[1]
 
     veBIds = organizer.load(files.virtual_experiment_probe_mesh_ids)
 
-    fine_mesh_opt_ids = fine_mesh.query(optXY)[1]
+    fine_mesh_opt_ids = fine_mesh.query(opt_xy)[1]
 
     for datafile in files.virtual_experiment_data_files:
 
@@ -59,7 +54,7 @@ def perform(dirs, files, par, organizer):
 
         data = reddata.ndata[par.optimization_variable]
 
-        deviation = np.abs(max(data[fine_mesh_bIds]) - min(data[fine_mesh_bIds]))*par.standard_deviation/2
+        deviation = np.abs(max(data[fine_mesh_b_ids]) - min(data[fine_mesh_b_ids])) * par.standard_deviation / 2
 
         bnd_data = data[fine_mesh_base_ids]
 
@@ -70,103 +65,122 @@ def perform(dirs, files, par, organizer):
 
         for i in range(par.virtual_exp_distortion_iteration):
             normal = random.standard_normal(len(bnd_data))
-            # normal = random.standard_normal(len(opt_data))
             dist_data = deviation * normal + bnd_data
 
             opt_dist_data = dist_data[opt_boundary_ids]
 
-            varmodes = np.array([m.ndata[par.optimization_variable] for m in modes]).T
+            var_modes = np.array([m.ndata[par.optimization_variable] for m in modes]).T
 
             A = np.array([m.ndata[par.optimization_variable][opt_mesh_ids] for m in modes]).T
             coeffs = np.linalg.lstsq(A, opt_dist_data)[0]
 
-            result = varmodes[bIds, :].dot(coeffs)
+            result = var_modes[b_ids, :].dot(coeffs)
 
             realizations.append(result)
 
-            interp = interp1d(paramSpaceBase[init_boundary_ids], dist_data[init_boundary_ids])
-            realizations_linear.append(interp(paramSpaceBase))
+            interp = interp1d(param_space_base[init_boundary_ids], dist_data[init_boundary_ids])
+            realizations_linear.append(interp(param_space_base))
 
-            # for c, m in zip(coeffs, modes):
-            #     result += c*m.ndata[par.optimization_variable][bIds]
-
-            # plt.plot(paramSpaceBase[sortBase], result[sortBase], '-', color=(0.5,0.5,0.5,0.1))
-
-            # plt.plot(reddata.ndata.X[fine_mesh_opt_ids], opt_data, '.', color="red", markersize=10)
-            # plt.plot(reddata.ndata.X[fine_mesh_opt_ids], dist_data, '.', color="pink", markersize=5)
-
-            # plt.plot(bX, data[veBIds], '.', color="black", markersize=5)
-
-        x = paramSpaceBase
+        x = param_space_base
+        y_exact = data[fine_mesh_base_ids][sort_base]
         y = np.mean(realizations, axis=0)
-        stdderiv = np.std(realizations, axis=0)
-        y1 = y - stdderiv
-        y2 = y + stdderiv
+        stddev = np.std(realizations, axis=0)
+        y1 = y - stddev
+        y2 = y + stddev
 
-        stdderiv_opt = stdderiv
+        stddev_opt = stddev
 
-        # for xx, yy in zip(x[init_boundary_ids], data[fine_mesh_base_ids][init_boundary_ids]):
-        #     plt.plot([xx, xx], [yy, 1e6], "k--", lw=1)
+        if par.save_plot_data:
+            # save reconstruction on boundary
+            organizer.save_plot_data(files.plot_reconstruction_result(name),
+                                     {"param": x,
+                                      "x": bx,
+                                      "y_mean": y,
+                                      "y_min": y1,
+                                      "y_max": y2,
+                                      "y_exact": y_exact,
+                                      "stddev": stddev})
 
-        for xx, yy in zip(x[opt_boundary_ids], data[fine_mesh_base_ids][opt_boundary_ids]):
-            plt.plot([xx, xx], [-1e6, yy], "k--", lw=1, alpha=0.5)
+            organizer.save_plot_data(files.plot_reconstruction_result_in_measurement(name),
+                                     {"param": x[opt_boundary_ids],
+                                      "x": bx[opt_boundary_ids],
+                                      "y_mean": y[opt_boundary_ids],
+                                      "y_min": y1[opt_boundary_ids],
+                                      "y_max": y2[opt_boundary_ids],
+                                      "y_exact": y_exact[opt_boundary_ids],
+                                      "stddev": stddev[opt_boundary_ids]})
 
-        # plt.plot(x, y, "-", lw=1, color="r")
+        if par.plot:
+            for xx, yy in zip(x[opt_boundary_ids], data[fine_mesh_base_ids][opt_boundary_ids]):
+                plt.plot([xx, xx], [-1e6, yy], "k--", lw=1, alpha=0.5)
 
-        plt.plot(x, y1, 'r--', lw=1, label='Reconstruction')
-        plt.plot(x, y2, 'r--', lw=1)
-        plt.fill_between(x, y1, y2, where=y2 >= y1, facecolor='r', interpolate=True, alpha=0.2)
+            plt.plot(x, y1, 'r--', lw=1, label='Reconstruction')
+            plt.plot(x, y2, 'r--', lw=1)
+            plt.fill_between(x, y1, y2, where=y2 >= y1, facecolor='r', interpolate=True, alpha=0.2)
 
-        ymin = min(y)
-        ymax = max(y)
-        plt.axes().set_ylim([ymin-0.1*(ymax-ymin), ymax+0.1*(ymax-ymin)])
+            ymin = min(y)
+            ymax = max(y)
+            plt.axes().set_ylim([ymin - 0.1 * (ymax - ymin), ymax + 0.1 * (ymax - ymin)])
 
-        x = paramSpaceBase
+        x = param_space_base
         y = np.mean(realizations_linear, axis=0)
-        stdderiv = np.std(realizations_linear, axis=0)
-        y1 = y - stdderiv
-        y2 = y + stdderiv
+        stddev = np.std(realizations_linear, axis=0)
+        y1 = y - stddev
+        y2 = y + stddev
 
-        for xx, yy in zip(x[init_boundary_ids], data[fine_mesh_base_ids][init_boundary_ids]):
-            plt.plot([xx, xx], [yy, 1e6], "k--", lw=1, alpha=0.5)
+        if par.save_plot_data:
+            # save interpolation on boundary
+            organizer.save_plot_data(files.plot_lininterpolation_result(name),
+                                     {"param": x,
+                                      "x": bx,
+                                      "y_mean": y,
+                                      "y_min": y1,
+                                      "y_max": y2,
+                                      "y_exact": y_exact,
+                                      "stddev": stddev})
 
-        # for xx, yy in zip(x, data[fine_mesh_base_ids][init_boundary_ids]):
-        #     plt.plot([xx, xx], [-1e6, yy], "k--", lw=1)
+            organizer.save_plot_data(files.plot_lininterpolation_result_in_measurement(name),
+                                     {"param": x[opt_boundary_ids],
+                                      "x": bx[opt_boundary_ids],
+                                      "y_mean": y[opt_boundary_ids],
+                                      "y_min": y1[opt_boundary_ids],
+                                      "y_max": y2[opt_boundary_ids],
+                                      "y_exact": y_exact[opt_boundary_ids],
+                                      "stddev": stddev[opt_boundary_ids]})
 
-        # plt.plot(paramSpaceBase[sortBase], data[fine_mesh_base_ids][sortBase],'-', color="black", label='"Real"')
-        # plt.plot(x, y, "-", lw=1, color="green")
+        if par.plot:
+            for xx, yy in zip(x[init_boundary_ids], data[fine_mesh_base_ids][init_boundary_ids]):
+                plt.plot([xx, xx], [yy, 1e6], "k--", lw=1, alpha=0.5)
 
-        plt.plot(x, y1, 'g--', lw=1, label='Interpolation')
-        plt.plot(x, y2, 'g--', lw=1)
-        plt.fill_between(x, y1, y2, where=y2 >= y1, facecolor='g', interpolate=True, alpha=0.2)
+            plt.plot(x, y1, 'g--', lw=1, label='Interpolation')
+            plt.plot(x, y2, 'g--', lw=1)
+            plt.fill_between(x, y1, y2, where=y2 >= y1, facecolor='g', interpolate=True, alpha=0.2)
 
-        ymin = min(y)
-        ymax = max(y)
-        plt.axes().set_ylim([ymin-0.1*(ymax-ymin), ymax+0.1*(ymax-ymin)])
+            ymin = min(y)
+            ymax = max(y)
+            plt.axes().set_ylim([ymin - 0.1 * (ymax - ymin), ymax + 0.1 * (ymax - ymin)])
 
-        plt.plot(paramSpaceBase[sortBase], data[fine_mesh_base_ids][sortBase], '.', lw=1, color="black", label='"Real"')
-        plt.legend(loc=2)
-        plt.xlabel("Position on the profile, LE=0.5")
-        plt.ylabel("Dimensionless total pressure")
+        if par.save_plot_data:
+            organizer.save_plot_data(files.plot_exact_result(name),
+                                     {"param": param_space_base[sort_base],
+                                      "x": bx,
+                                      "y": data[fine_mesh_base_ids][sort_base]})
 
-        dirpath = '/home/wgryglas/Documents/konferencje/rok2016/porto/presentation/img'
+        if par.plot:
+            plt.plot(param_space_base[sort_base], data[fine_mesh_base_ids][sort_base], '.', lw=1, color="black",
+                     label='"Real"')
+            plt.legend(loc=2)
+            plt.xlabel("Position on the profile, LE=0.5")
+            plt.ylabel("Dimensionless total pressure")
+            # plt.savefig(dirpath+'/press_profile_airfoil_'+name+'.pdf', transparent=True)
+            plt.show()
 
-        plt.savefig(dirpath+'/press_profile_airfoil_'+name+'.pdf', transparent=True)
-        plt.show()
-
-
-        plt.plot(paramSpaceBase, stdderiv_opt, 'ro-', lw=2, label='Reconstruction')
-        plt.plot(paramSpaceBase, stdderiv, 'gv-', lw=2, label='Interpolation')
-        plt.grid()
-        plt.xlabel("Position on the profile, LE=0.5")
-        plt.ylabel("Std. deviation of pressure")
-        plt.legend(loc=2)
-        plt.savefig(dirpath+'/press_airfoil_std_dev_'+name+'.pdf', transparent=True)
-        plt.show()
-
-        # plt.plot(reddata.ndata.x[fine_mesh_base_ids][sortbase], data[fine_mesh_base_ids][sortbase],'b-', label='"real"')
-        # plt.plot(x, y, ".", color="black")
-        # plt.plot(x, y1 , 'b--', lw=1)
-        # plt.plot(x, y2 , 'b--', lw=1)
-        # plt.fill_between(x, y1, y2, where=y2>=y1, facecolor='b', interpolate=True, alpha=0.2)
-        # plt.show()
+        if par.plot:
+            plt.plot(param_space_base, stddev_opt, 'ro-', lw=2, label='Reconstruction')
+            plt.plot(param_space_base, stddev, 'gv-', lw=2, label='Interpolation')
+            plt.grid()
+            plt.xlabel("Position on the profile, LE=0.5")
+            plt.ylabel("Std. deviation of pressure")
+            plt.legend(loc=2)
+            # plt.savefig(dirpath+'/press_airfoil_std_dev_'+name+'.pdf', transparent=True)
+            plt.show()

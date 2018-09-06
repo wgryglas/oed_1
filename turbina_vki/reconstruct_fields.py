@@ -29,8 +29,14 @@ def perform(dirs, files, par, organizer):
 
     clear_dir(dirs.reconstructs)
 
+    outMapping = organizer.load_pressure_to_mach_mapping()
+
     for press in datas:
-        datas[press].dumpFile(files.reconstructs_for(press, par.optimization_variable, par.num_modes))
+        out_mach = outMapping[press]
+        datas[press].dumpFile(files.reconstructs_for(out_mach, par.optimization_variable, par.num_modes))
+    #
+    # for press in datas:
+    #     datas[press].dumpFile(files.reconstructs_for(press, par.optimization_variable, par.num_modes))
 
 
 if __name__ == "__main__":

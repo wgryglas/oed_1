@@ -22,6 +22,6 @@ import plot_modes_error
 
 # run_modules(plot_optimized_points)
 
-run_modules(reconstruct_set_of_virtual_experiments)
+run_modules(optimize_positions, plot_optimized_points, reconstruct_set_of_virtual_experiments)
 
 # run_modules(compute_modes, plot_modes_error)

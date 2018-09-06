@@ -16,11 +16,20 @@ Settings file for VKI turbine cases
 class __parameters__:
     def __init__(self):
         self.num_modes = 5
+
         self.num_measure_pnts = 2 * self.num_modes + 1
+
         self.max_data_files = 200
+
         self.useCache = True
+
         self.optimization_variable = "mach_iso"
+
         self.experiment_variable_mapping = {"p": 0, "mach_iso": 2}
+
+        self.plot = True#False
+
+        self.save_plot_data = False#True
 
 
     @property
@@ -37,7 +46,7 @@ class __parameters__:
 
     @staticmethod
     def filter_calc_out_mach(mach):
-        return 0.7 < mach
+        return 0.7 < mach #mach < 1.
 
     @staticmethod
     def filter_calc_angle_of_attack(angle):
@@ -45,7 +54,7 @@ class __parameters__:
 
     @staticmethod
     def filter_experiment_pressure_in_tank(pressure):
-        return pressure >= 0.4
+        return True #pressure >= 0.4
 
 
 par = __parameters__()
@@ -79,10 +88,14 @@ class __dirs__:
     def modes(self): return self.root + os.sep + "modes"
 
     @property
-    def reconstructs(self): return self.root + os.sep + "reconstructs"
+    def reconstructs(self): return self.root + os.sep + "reconstructs2"
 
     @property
     def results(self): return "set_"+str(1)
+
+    @property
+    def plot_data_save_dir(self): return '/home/wgryglas/Documents/studia doktoranckie/seminaria/za2017/figures/vki/sub_and_supersonic'
+
 
 dirs = __dirs__('/home/wgryglas/AVIO/data/tunel_vki2b_v2')
 
@@ -171,6 +184,25 @@ class __files__:
     def probe_mesh_ids(self): return dirs.experiment + os.sep + "probe_mesh_ids.npy"
 
 
+    # data for plotting:
+    @property
+    def plot_curve_xy(self): return dirs.plot_data_save_dir + os.sep + "curve_xy.csv"
+
+    @property
+    def plot_probe_pnts(self): return dirs.plot_data_save_dir + os.sep + "probe_pnts.csv"
+
+    @property
+    def plot_opt_pnts(self): return dirs.plot_data_save_dir + os.sep + "opt_pnts.csv"
+
+    @property
+    def plot_initial_pnts(self): return dirs.plot_data_save_dir + os.sep + "initial_pnts.csv"
+
+    def plot_boundary_reconstruct(self, name): return dirs.plot_data_save_dir + os.sep + name + ".csv"
+
+
+
+
+
 files = __files__()
 
 
@@ -193,6 +225,12 @@ class __data_organizer__:
 
     @staticmethod
     def read_pressure_in_tank(fname):
+        # import numpy as np
+        # data = np.load(fname)
+        # res = {}
+        # for d in data:
+        #     res[d[0]] = d[1]
+        # return res
         pass
 
     @staticmethod
@@ -368,6 +406,14 @@ class __data_organizer__:
     def save(self, path, data):
         import numpy as np
         np.save(path, data)
+
+
+    def save_plot_data(self, path, data_dictionary):
+        import pandas
+        from wg.tools.system import savefile
+
+        savefile(pandas.DataFrame(data_dictionary).to_csv, path, index=False)
+
 
     def load(self, path):
         import numpy as np

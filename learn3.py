@@ -1,10 +1,17 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from wg.tools.function import *
+from wg.tools.system import savefile
 import modred as md
 
-__author__ = 'wgryglas'
+import wg.tools.system
 
+from os import makedirs
+from os.path import dirname
+from os.path import exists
+
+
+__author__ = 'wgryglas'
 
 points = fixargument(plt.plot, marker='o', linestyle='', markersize=3)
 thickLines = fixargument(plt.plot, marker='', linewidth=3)
@@ -12,6 +19,11 @@ thickLines = fixargument(plt.plot, marker='', linewidth=3)
 plt.figure = fixargument(plt.figure, figsize=(9, 4.5))
 
 plotnow = join(plt.figure, points, lambda title: plt.title(title), plt.show, argsFor={1: 'all', 2: 'title'})
+
+#def savefile(*args):
+#    if not exists(dirname(args[0])):
+#        makedirs(dirname(args[0]))
+#    np.savetxt(*args)
 
 
 #np.random.seed(1)
@@ -28,22 +40,31 @@ def fun(X, a, b, c):
 # Setup
 # ==================================================================================================================== #
 npoints = 50
-n_mods = 3
-max_measure = 6
+n_mods = 5
+max_measure =11#n_mods*2+1
+n_div = 3
+
+save_dir = "/home/wgryglas/Desktop/prezentacja_za/figures"#"/home/wgryglas/Documents/studia doktoranckie/seminaria/za2017"
 
 # ==================================================================================================================== #
 # Generate input data
 # ==================================================================================================================== #
 x = np.linspace(0, 3, npoints)
-Y = np.zeros((npoints, 27))
+Y = np.zeros((npoints, n_div**3))
 
 count = 0
-for i in range(1, 3):
-    for j in range(1, 3):
-        for k in range(1, 3):
+for i in np.linspace(1, 3, n_div):
+    for j in np.linspace(1, 3, n_div):
+        for k in np.linspace(1, 3, n_div):
             print i, j, k
             Y[:, count] = fun(x, i, j, k)
             count += 1
+
+
+data_save = np.zeros((npoints, n_div**3+1))
+data_save[:, 0] = x
+data_save[:, 1:] = Y
+savefile(np.savetxt, save_dir+"/example1D/input.dat", data_save)
 
 # ==================================================================================================================== #
 # plot input data
@@ -73,8 +94,15 @@ for i in range(n_mods):
 # ax[0].set_title('Rozwiazania dla kombinacji parametrow a,b,c=1,2')
 # ax[1].set_title('Wektory bazowe(POD)')
 #
-plt.tight_layout()
-plt.savefig('/home/wgryglas/Desktop/prezentacja_esn/source_data.pdf', transparent=True)
+
+
+#data_save=np.zeros((npoints, n_mods+1))
+#data_save[:, 0] = x
+#data_save[:, 1:] = V
+#np.savetxt("/home/wgryglas/Desktop/prezentacja_za/example1D/basis.dat", data_save)
+
+#plt.tight_layout()
+#plt.savefig('/home/wgryglas/Desktop/prezentacja_esn/source_data.pdf', transparent=True)
 plt.show()
 # ==================================================================================================================== #
 # Pnts location optimization:
@@ -158,7 +186,7 @@ while run:
 # Generate measurement:
 # ==================================================================================================================== #
 
-nSamples = 20
+nSamples = 100
 
 coeffs = (1.2, 1.8, 1.5)#(1, 2, 2), (2, 1, 1)]
 
@@ -226,7 +254,16 @@ ax[1].set_ylabel('y')
 # ax[1].set_title('Optimal positions')
 ax[1].legend(legends, ['Exact', 'Reconstruction', 'Std. deviation'], loc=2)
 
+savefile(np.savetxt, save_dir+"/alg1DCase-linearVsReconstruct/opt_pnts.dat", x[opt_pnts])
 
+data_save = np.zeros((npoints, 6))
+data_save[:, 0] = x
+data_save[:, 1] = exact
+data_save[:, 2] = y
+data_save[:, 3] = stdderiv
+data_save[:, 4] = y1
+data_save[:, 5] = y2
+savefile(np.savetxt, save_dir+"/alg1DCase-linearVsReconstruct/reconstruction.dat", data_save)
 
 # ==================================================================================================================== #
 # Reconstruct and plot equal distribution
@@ -277,8 +314,20 @@ ax[0].set_ylabel('y')
 # ax[0].set_title('Equal distribution')
 ax[0].legend(legends, ['Exact', 'L. interpolation', 'Std. deviation'], loc=2)
 
+
+savefile(np.savetxt, save_dir+"/alg1DCase-linearVsReconstruct/eq_pnts.dat", x[dataId])
+
+data_save = np.zeros((npoints, 6))
+data_save[:, 0] = x
+data_save[:, 1] = exact
+data_save[:, 2] = y
+data_save[:, 3] = stdderiv
+data_save[:, 4] = y1
+data_save[:, 5] = y2
+savefile(np.savetxt, save_dir+"/alg1DCase-linearVsReconstruct/linear_interp.dat", data_save)
+
 plt.tight_layout()
-plt.savefig('/home/wgryglas/Desktop/prezentacja_esn/recon_comparison.pdf', transparent=True)
+#plt.savefig('/home/wgryglas/Desktop/prezentacja_esn/recon_comparison.pdf', transparent=True)
 plt.show()
 
 plt.figure()
@@ -286,7 +335,7 @@ plt.legend([plt.plot(x, stdderiv, 'g-', marker='v')[0], plt.plot(x, stdderiv_opt
 plt.xlabel('x')
 plt.ylabel('Std. deviation')
 plt.grid()
-plt.savefig('/home/wgryglas/Desktop/prezentacja_esn/std_dev_comparison.pdf', transparent=True)
+#plt.savefig('/home/wgryglas/Desktop/prezentacja_esn/std_dev_comparison.pdf', transparent=True)
 plt.show()
 exit()
 

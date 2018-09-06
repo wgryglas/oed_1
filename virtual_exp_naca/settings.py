@@ -18,12 +18,14 @@ Settings file for naca0012
 class __parameters__:
     def __init__(self):
         self.num_modes = 10
-        self.num_measure_pnts = 2 * self.num_modes + 1
+        self.num_measure_pnts = 31#2 * self.num_modes + 1
         self.max_data_files = 200
         self.useCache = True
-        self.optimization_variable = "p"
+        self.optimization_variable = "mach_iso"#"p"
         self.standard_deviation = 0.05
         self.virtual_exp_distortion_iteration = 100
+        self.plot = False#True
+        self.save_plot_data = True#False
 
     @property
     def kappa(self): return 1.4
@@ -69,6 +71,10 @@ class __dirs__:
     @property
     def results(self): return "set_"+str(1)
 
+    @property
+    def save_plot_dir(self): return "/home/wgryglas/Desktop/figures_test_diff_variable/figures/naca" #"/home/wgryglas/Documents/studia doktoranckie/seminaria/za2017/figures/naca"
+
+
 dirs = __dirs__('/home/wgryglas/AVIO/data/naca0012')
 
 
@@ -105,7 +111,7 @@ class __files__:
     @property
     def red_converged_results(self):
         from glob import glob1
-        return [dirs.all_data + os.sep + f for f in glob1(dirs.all_data, "*.dat")]
+        return [dirs.all_data + os.sep + f for f in glob1(dirs.all_data, "*.dat")]#[::10]
 
     def modes(self, nmodes):
         """
@@ -155,6 +161,23 @@ class __files__:
 
     @property
     def probe_mesh_ids(self): return dirs.root + os.sep + "probe_mesh_ids.npy"
+
+
+    @property
+    def plot_profile(self): return dirs.save_plot_dir + os.sep + "profile.csv"
+
+    @property
+    def plot_init_opt_pnts(self): return dirs.save_plot_dir + os.sep + ("points_np%d_nm%d.csv" % (par.num_measure_pnts, par.num_modes)) # "points.csv"
+
+    def plot_exact_result(self, data_name): return dirs.save_plot_dir + os.sep + data_name + os.sep + "exact.csv"
+
+    def plot_reconstruction_result(self, data_name): return dirs.save_plot_dir + os.sep + data_name + os.sep + "reconstructionResult.csv"
+
+    def plot_reconstruction_result_in_measurement(self, data_name): return dirs.save_plot_dir + os.sep + data_name + os.sep + "reconstructionResult-measurement_positions.csv"
+
+    def plot_lininterpolation_result(self, data_name): return dirs.save_plot_dir + os.sep + data_name + os.sep + "linInterpResult.csv"
+
+    def plot_lininterpolation_result_in_measurement(self, data_name): return dirs.save_plot_dir + os.sep + data_name + os.sep + "linInterpResult-measurement_positions.csv"
 
 
 files = __files__()
@@ -317,6 +340,13 @@ class __data_organizer__:
 
         sort = np.argsort(curves.getParamList(XY, 1))
         return sort
+
+
+    def save_plot_data(self, path, data_dictionary):
+        import pandas
+        from wg.tools.system import savefile
+
+        savefile(pandas.DataFrame(data_dictionary).to_csv, path, index=False)
 
     def save(self, path, data):
         import numpy as np

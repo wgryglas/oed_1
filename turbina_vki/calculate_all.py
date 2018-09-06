@@ -3,10 +3,13 @@ import compute_modes
 import optimize_positions
 import fit_coefficent_to_experiment
 import reconstruct_fields
+import plot_comparison_on_boundary
 
 from settings import run_modules
 
-run_modules(compute_modes, optimize_positions, fit_coefficent_to_experiment, reconstruct_fields)
+#run_modules(compute_modes, optimize_positions, fit_coefficent_to_experiment, reconstruct_fields)
 
+#run_modules(compute_modes, optimize_positions, fit_coefficent_to_experiment, reconstruct_fields, plot_comparison_on_boundary)
+run_modules(optimize_positions, fit_coefficent_to_experiment, reconstruct_fields, plot_comparison_on_boundary)
 
 
