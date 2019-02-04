@@ -18,7 +18,7 @@ def perform(dirs, files, par, organizer):
 
 
     def argsortIndices(X, Y, geom):
-        paramspace = np.array(geom.getParamList([[x,y] for x,y in zip(X, Y)], 1))
+        paramspace = np.array(geom.getParamList([[x, y] for x, y in zip(X, Y)], 1))
         return np.argsort(paramspace)
 
 
@@ -28,7 +28,7 @@ def perform(dirs, files, par, organizer):
     # bX, bY = organizer.load_mesh_boundary_coordinates()
 
     geom = organizer.load_get_geometry()
-    paramSpaceBase = np.array(geom.getParamList([[x,y] for x,y in zip(bX, bY)], 1))
+    paramSpaceBase = np.array(geom.getParamList([[x, y] for x, y in zip(bX, bY)], 1))
     sortBase = np.argsort(paramSpaceBase)
 
     opt_mesh_ids = organizer.load(files.optimized_mesh_ids)
@@ -42,7 +42,7 @@ def perform(dirs, files, par, organizer):
     initXY = base_mesh.data[init_mesh_ids]
     init_boundary_ids = boundaryBaseMesh.query(initXY)[1]
     init_boundary_ids_sort = init_boundary_ids[argsortIndices(bX[init_boundary_ids], bY[init_boundary_ids], geom)]
-    iParamSpace = np.array(geom.getParamList([[x,y] for x,y in initXY], 1))
+    iParamSpace = np.array(geom.getParamList([[x, y] for x, y in initXY], 1))
 
     fine_mesh = organizer.load_virtual_exp_mesh()
     fine_mesh_bIds = fine_mesh.query(organizer.load_data_file(files.virtual_experiment_boundary_coords))[1]
@@ -106,8 +106,7 @@ def perform(dirs, files, par, organizer):
 
             # realizations_linear.append(dist_data[init_boundary_ids])
 
-        x = paramSpaceBase
-        y_exact = data[fine_mesh_base_ids][sortBase]
+        y_exact = data[fine_mesh_base_ids]
         y = np.mean(realizations, axis=0)
         stddev = np.std(realizations, axis=0)
         y1 = y - stddev
@@ -116,12 +115,12 @@ def perform(dirs, files, par, organizer):
         stddev_opt = stddev
 
         firstHalf = np.where(paramSpaceBase[sortBase] < 0.5)
-        secondHalf = np.append(np.where(paramSpaceBase[sortBase]>= 0.5), 0)
+        secondHalf = np.append(np.where(paramSpaceBase[sortBase] >= 0.5), 0)
 
         if par.save_plot_data:
             # save reconstruction on boundary
             organizer.save_plot_data(files.plot_reconstruction_result(name),
-                                     {"param": x[sortBase],
+                                     {"param": paramSpaceBase[sortBase],
                                       "x": bX[sortBase],
                                       "y_mean": y[sortBase],
                                       "y_min": y1[sortBase],
@@ -130,7 +129,7 @@ def perform(dirs, files, par, organizer):
                                       "stddev": stddev[sortBase]})
 
             organizer.save_plot_data(files.plot_reconstruction_result_in_measurement(name),
-                                     {"param": x[opt_boundary_ids_sort],
+                                     {"param": paramSpaceBase[opt_boundary_ids_sort],
                                       "x": bX[opt_boundary_ids_sort],
                                       "y_mean": y[opt_boundary_ids_sort],
                                       "y_min": y1[opt_boundary_ids_sort],
@@ -140,7 +139,7 @@ def perform(dirs, files, par, organizer):
 
             for half, fileName in zip([firstHalf, secondHalf], [files.plot_reconstruction_lowerCurve(name), files.plot_reconstruction_upperCurve(name)]):
                 organizer.save_plot_data(fileName,
-                                         {"param": x[sortBase][half],
+                                         {"param": paramSpaceBase[sortBase][half],
                                           "x": bX[sortBase][half],
                                           "y_mean": y[sortBase][half],
                                           "y_min": y1[sortBase][half],
@@ -171,7 +170,7 @@ def perform(dirs, files, par, organizer):
         if par.save_plot_data:
             # save interpolation on boundary
             organizer.save_plot_data(files.plot_lininterpolation_result(name),
-                                     {"param": x[sortBase],
+                                     {"param": paramSpaceBase[sortBase],
                                       "x": bX[sortBase],
                                       "y_mean": y[sortBase],
                                       "y_min": y1[sortBase],
@@ -180,7 +179,7 @@ def perform(dirs, files, par, organizer):
                                       "stddev": stddev[sortBase]})
 
             organizer.save_plot_data(files.plot_lininterpolation_result_in_measurement(name),
-                                     {"param": x[init_boundary_ids_sort],
+                                     {"param": paramSpaceBase[init_boundary_ids_sort],
                                       "x": bX[init_boundary_ids_sort],
                                       "y_mean": y[init_boundary_ids_sort],
                                       "y_min": y1[init_boundary_ids_sort],
@@ -190,7 +189,7 @@ def perform(dirs, files, par, organizer):
 
             for half, fileName in zip([firstHalf, secondHalf], [files.plot_lininterpolation_lowerCurve(name), files.plot_lininterpolation_upperCurve(name)]):
                 organizer.save_plot_data(fileName,
-                                         {"param": x[half],
+                                         {"param": paramSpaceBase[half],
                                           "x": bX[half],
                                           "y_mean": y[half],
                                           "y_min": y1[half],
