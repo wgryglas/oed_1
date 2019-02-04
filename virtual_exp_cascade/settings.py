@@ -36,11 +36,13 @@ class __parameters__:
         self.num_measure_pnts = 2 * self.num_modes + 1
         self.max_data_files = 1e4
         self.useCache = True
-        self.optimization_variable = "mach_iso" #"p"
+        self.optimization_variable = "cp" #"mach_iso" #"p"
         self.standard_deviation = 0.05
         self.virtual_exp_distortion_iteration = 200
-        self.plot = True
+        self.plot = False
         self.save_plot_data = True
+        self.plot_in_parameter_space = False
+
         self.criterionFunction = computeACriterion
         # self.criterionFunction = computeConditionNumber
 
@@ -92,8 +94,9 @@ class __dirs__:
     def figures(self): return self.root + "/out/figures"
 
     @property
-    def save_plot_dir(self): return "/home/wgryglas/Documents/studia doktoranckie/articles/doe_pod_paper/figures/cascade/new_data"
-
+    def save_plot_dir(self): return "/home/wgryglas/Documents/studia doktoranckie/articles/COOPERNIK-Instrumentation/figures/cascade"
+     #"/home/wgryglas/Desktop/figures_cascade_data"
+     # #"/home/wgryglas/Documents/studia doktoranckie/articles/doe_pod_paper/figures/cascade/new_data"
 
 
 dirs = __dirs__('/home/wgryglas/AVIO/data/cascade')
@@ -204,9 +207,17 @@ class __files__:
 
     def plot_reconstruction_result_in_measurement(self, data_name): return dirs.save_plot_dir + os.sep + data_name + os.sep + "reconstructionResult-measurement_positions.csv"
 
+    def plot_reconstruction_lowerCurve(self, data_name): return dirs.save_plot_dir + os.sep + data_name + os.sep + "reconstructionResult-lowerCurve.csv"
+
+    def plot_reconstruction_upperCurve(self, data_name): return dirs.save_plot_dir + os.sep + data_name + os.sep + "reconstructionResult-upperCurve.csv"
+
     def plot_lininterpolation_result(self, data_name): return dirs.save_plot_dir + os.sep + data_name + os.sep + "linInterpResult.csv"
 
     def plot_lininterpolation_result_in_measurement(self, data_name): return dirs.save_plot_dir + os.sep + data_name + os.sep + "linInterpResult-measurement_positions.csv"
+
+    def plot_lininterpolation_lowerCurve(self, data_name): return dirs.save_plot_dir + os.sep + data_name + os.sep + "linInterpResult-lowerCurve.csv"
+
+    def plot_lininterpolation_upperCurve(self, data_name): return dirs.save_plot_dir + os.sep + data_name + os.sep + "linInterpResult-upperCurve.csv"
 
 
 
@@ -218,7 +229,7 @@ class __data_organizer__:
     def __init__(self):
         self.__red_cache__ = None
         self.__get_cache__ = None
-        self.markers = itertools.cycle(['^','o','D','s'])
+        self.markers = itertools.cycle(['^', 'o', ' D', 's'])
 
     @staticmethod
     def read_mode_id(fname):
@@ -247,7 +258,7 @@ class __data_organizer__:
         from bearded_octo_wookie.RED.RedReader import RedTecplotFile
         return RedTecplotFile(path, useCache=par.useCache)
 
-    def load_modes(self):
+    def load_modes(self, numberOfModesToLoad = np.inf):
         """
         Generator providing modes as tecplot loaded file
         :return: generator
@@ -255,6 +266,8 @@ class __data_organizer__:
         from bearded_octo_wookie.RED.RedReader import RedTecplotFile
         for i, fpath in files.modes_stored:
             yield RedTecplotFile(fpath, useCache=par.useCache)
+            if i >= numberOfModesToLoad:
+                return
 
     def load_mode(self, modeNumber):
         from bearded_octo_wookie.RED.RedReader import RedTecplotFile
@@ -264,9 +277,9 @@ class __data_organizer__:
                 return RedTecplotFile(fpath, useCache=par.useCache)
         return None
 
-    def clear_cache(self, direcotry):
+    def clear_cache(self, directory):
         from glob import glob1
-        toRemove = [direcotry + os.sep + name.split(".")[0]+"cache.npy" for name in glob1(direcotry)]
+        toRemove = [directory + os.sep + name for name in glob1(directory, "*.cache.npz")]
         map(os.remove, toRemove)
 
     def clear_computed_data(self):
@@ -296,6 +309,10 @@ class __data_organizer__:
         red = self.load_red_file(files.virtual_experiment_data_files[0])
         from scipy.spatial import cKDTree
         return cKDTree(red.data[:, :2])
+
+    def load_virtual_exp_data(self):
+        for f in files.virtual_experiment_data_files:
+            yield self.load_red_file(f)
 
     def load_experiment_data(self, filterFun=None):
         """

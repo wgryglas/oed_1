@@ -13,15 +13,15 @@ import reconstruct_set_of_virtual_experiments
 import plot_modes_error
 
 
+#Available modules
+# compute_modes
+# optimize_positions
+# extract_probe_ids_in_virtual_experiment_mesh
+# plot_optimized_points
+# reconstruct_set_of_virtual_experiments
 
-# run_modules(compute_modes, optimize_positions, extract_probe_ids_in_virtual_experiment_mesh, reconstruct_set_of_virtual_experiments)
+# do all in proper order:
 
-# run_modules(optimize_positions, extract_probe_ids_in_virtual_experiment_mesh, reconstruct_set_of_virtual_experiments)
+#run_modules(compute_modes, optimize_positions, plot_optimized_points, reconstruct_set_of_virtual_experiments)
 
-# run_modules(optimize_positions, reconstruct_set_of_virtual_experiments)
-
-# run_modules(plot_optimized_points)
-
-run_modules(optimize_positions, plot_optimized_points, reconstruct_set_of_virtual_experiments)
-
-# run_modules(compute_modes, plot_modes_error)
+run_modules(reconstruct_set_of_virtual_experiments)

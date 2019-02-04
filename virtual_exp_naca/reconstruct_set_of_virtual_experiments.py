@@ -90,6 +90,9 @@ def perform(dirs, files, par, organizer):
 
         stddev_opt = stddev
 
+        firstHalf = np.where(param_space_base < 0.5)
+        secondHalf = np.append(np.where(param_space_base >= 0.5), 0)
+
         if par.save_plot_data:
             # save reconstruction on boundary
             organizer.save_plot_data(files.plot_reconstruction_result(name),
@@ -110,19 +113,31 @@ def perform(dirs, files, par, organizer):
                                       "y_exact": y_exact[opt_boundary_ids],
                                       "stddev": stddev[opt_boundary_ids]})
 
+            for half, fileName in zip([firstHalf, secondHalf], [files.plot_reconstruction_lowerCurve(name), files.plot_reconstruction_upperCurve(name)]):
+                organizer.save_plot_data(fileName,
+                                         {"param": x[half],
+                                          "x": bx[half],
+                                          "y_mean": y[half],
+                                          "y_min": y1[half],
+                                          "y_max": y2[half],
+                                          "y_exact": y_exact[half],
+                                          "stddev": stddev[half]})
+
+        xplot = param_space_base if par.plot_in_parameter_sapce else bx
+
         if par.plot:
-            for xx, yy in zip(x[opt_boundary_ids], data[fine_mesh_base_ids][opt_boundary_ids]):
+            for xx, yy in zip(xplot[opt_boundary_ids], data[fine_mesh_base_ids][opt_boundary_ids]):
                 plt.plot([xx, xx], [-1e6, yy], "k--", lw=1, alpha=0.5)
 
-            plt.plot(x, y1, 'r--', lw=1, label='Reconstruction')
-            plt.plot(x, y2, 'r--', lw=1)
-            plt.fill_between(x, y1, y2, where=y2 >= y1, facecolor='r', interpolate=True, alpha=0.2)
+            plt.plot(xplot, y1, 'r--', lw=1, label='Reconstruction')
+            plt.plot(xplot, y2, 'r--', lw=1)
+            for sub in [firstHalf, secondHalf]:
+                plt.fill_between(xplot[sub], y1[sub], y2[sub],  where=y2[sub] >= y1[sub], facecolor='r', interpolate=True, alpha=0.2)
 
             ymin = min(y)
             ymax = max(y)
             plt.axes().set_ylim([ymin - 0.1 * (ymax - ymin), ymax + 0.1 * (ymax - ymin)])
 
-        x = param_space_base
         y = np.mean(realizations_linear, axis=0)
         stddev = np.std(realizations_linear, axis=0)
         y1 = y - stddev
@@ -140,21 +155,34 @@ def perform(dirs, files, par, organizer):
                                       "stddev": stddev})
 
             organizer.save_plot_data(files.plot_lininterpolation_result_in_measurement(name),
-                                     {"param": x[opt_boundary_ids],
-                                      "x": bx[opt_boundary_ids],
-                                      "y_mean": y[opt_boundary_ids],
-                                      "y_min": y1[opt_boundary_ids],
-                                      "y_max": y2[opt_boundary_ids],
-                                      "y_exact": y_exact[opt_boundary_ids],
-                                      "stddev": stddev[opt_boundary_ids]})
+                                     {"param": x[init_boundary_ids],
+                                      "x": bx[init_boundary_ids],
+                                      "y_mean": y[init_boundary_ids],
+                                      "y_min": y1[init_boundary_ids],
+                                      "y_max": y2[init_boundary_ids],
+                                      "y_exact": y_exact[init_boundary_ids],
+                                      "stddev": stddev[init_boundary_ids]})
+
+            for half, fileName in zip([firstHalf, secondHalf], [files.plot_lininterpolation_lowerCurve(name), files.plot_lininterpolation_upperCurve(name)]):
+                organizer.save_plot_data(fileName,
+                                         {"param": x[half],
+                                          "x": bx[half],
+                                          "y_mean": y[half],
+                                          "y_min": y1[half],
+                                          "y_max": y2[half],
+                                          "y_exact": y_exact[half],
+                                          "stddev": stddev[half]})
 
         if par.plot:
-            for xx, yy in zip(x[init_boundary_ids], data[fine_mesh_base_ids][init_boundary_ids]):
+            for xx, yy in zip(xplot[init_boundary_ids], data[fine_mesh_base_ids][init_boundary_ids]):
                 plt.plot([xx, xx], [yy, 1e6], "k--", lw=1, alpha=0.5)
 
-            plt.plot(x, y1, 'g--', lw=1, label='Interpolation')
-            plt.plot(x, y2, 'g--', lw=1)
-            plt.fill_between(x, y1, y2, where=y2 >= y1, facecolor='g', interpolate=True, alpha=0.2)
+            plt.plot(xplot, y1, 'g--', lw=1, label='Interpolation')
+            plt.plot(xplot, y2, 'g--', lw=1)
+
+            for sub in [firstHalf, secondHalf]:
+                plt.fill_between(xplot[sub], y1[sub], y2[sub],  where=y2[sub] >= y1[sub], facecolor='g', interpolate=True, alpha=0.2)
+            #plt.fill_between(xplot, y1, y2, where=y2 >= y1, facecolor='g', interpolate=True, alpha=0.2)
 
             ymin = min(y)
             ymax = max(y)
@@ -167,20 +195,24 @@ def perform(dirs, files, par, organizer):
                                       "y": data[fine_mesh_base_ids][sort_base]})
 
         if par.plot:
-            plt.plot(param_space_base[sort_base], data[fine_mesh_base_ids][sort_base], '.', lw=1, color="black",
+            plt.plot(xplot[sort_base], data[fine_mesh_base_ids][sort_base], '.', lw=1, color="black",
                      label='"Real"')
-            plt.legend(loc=2)
-            plt.xlabel("Position on the profile, LE=0.5")
-            plt.ylabel("Dimensionless total pressure")
+
+            plt.legend(loc=2 if par.plot_in_parameter_sapce else 4)
+
+            plt.xlabel("Position on the profile, LE=0.5" if par.plot_in_parameter_sapce else "X coordinate")
+            plt.ylabel(par.optimization_variable)
             # plt.savefig(dirpath+'/press_profile_airfoil_'+name+'.pdf', transparent=True)
+            plt.xlim([-0.1, 1.1])
             plt.show()
 
         if par.plot:
-            plt.plot(param_space_base, stddev_opt, 'ro-', lw=2, label='Reconstruction')
-            plt.plot(param_space_base, stddev, 'gv-', lw=2, label='Interpolation')
+            plt.plot(xplot, stddev_opt / par.standard_deviation, 'ro-', lw=2, label='Reconstruction')
+            plt.plot(xplot, stddev / par.standard_deviation, 'gv-', lw=2, label='Interpolation')
             plt.grid()
-            plt.xlabel("Position on the profile, LE=0.5")
+            plt.xlabel("Position on the profile, LE=0.5" if par.plot_in_parameter_sapce else "X coordinate")
             plt.ylabel("Std. deviation of pressure")
-            plt.legend(loc=2)
+            plt.legend(loc=2 if par.plot_in_parameter_sapce else 3)
             # plt.savefig(dirpath+'/press_airfoil_std_dev_'+name+'.pdf', transparent=True)
+            plt.xlim([-0.1, 1.1])
             plt.show()

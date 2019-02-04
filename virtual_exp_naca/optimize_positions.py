@@ -4,7 +4,7 @@ def perform(dirs, files, par, organizer):
     from scipy.spatial import cKDTree
     from wg.tools.array import spread_id
 
-    # ------- PREPARE DATA ----------------------------------------------------------------------------------------------- #
+    # ------- PREPARE DATA ------------------------------------------------------------------------------------------- #
     np.seterr(all='raise')
 
     # read mesh and necessery data
@@ -36,16 +36,16 @@ def perform(dirs, files, par, organizer):
         X = np.matrix(modes[pntIds, :])
         return X.T*X
 
-    def computeACriterion(M):
-        try:
-            D = np.linalg.eigvalsh(M)
-            tr = np.ravel(np.sum(1./D))
-            if tr < 0:
-                tr = np.inf
-        except Exception as e:
-            print e
-            tr = np.inf
-        return tr
+    # def computeACriterion(M):
+    #     try:
+    #         D = np.linalg.eigvalsh(M)
+    #         tr = np.ravel(np.sum(1./D))
+    #         if tr < 0:
+    #             tr = np.inf
+    #     except Exception as e:
+    #         print e
+    #         tr = np.inf
+    #     return tr
 
     # Perform optimization
 
@@ -97,7 +97,8 @@ def perform(dirs, files, par, organizer):
                 tmp_opt2 = np.append(tmp_opt, j)
 
                 testPos = probe_mesh_ids[tmp_opt2]
-                criterion = computeACriterion(getSubFisherMatrix(varmodes, testPos))
+                # criterion = computeACriterion(getSubFisherMatrix(varmodes, testPos))
+                criterion = par.objective_function( getSubFisherMatrix(varmodes, testPos) )
 
                 if criterion < 0:
                     continue

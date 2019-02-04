@@ -15,17 +15,43 @@ Settings file for naca0012
 
 # ------------------ PARAMETERS ----------------------------------------
 
+def computeACriterion(M):
+        try:
+            D = np.linalg.eigvalsh(M)
+            tr = np.ravel(np.sum(1./D))
+            if tr < 0:
+                tr = np.inf
+        except Exception as e:
+            print e
+            tr = np.inf
+        return tr
+
+def computeConditionNumber(M):
+    return np.linalg.cond(M)
+
 class __parameters__:
     def __init__(self):
+        # Available fields:
+        pressure = "p"
+        mach = "mach_iso"
+        pressure_coefficient = "cp"
+
         self.num_modes = 10
-        self.num_measure_pnts = 31#2 * self.num_modes + 1
-        self.max_data_files = 200
+        self.num_measure_pnts = 21#2 * self.num_modes + 1 #31
+        self.max_data_files = 500
         self.useCache = True
-        self.optimization_variable = "mach_iso"#"p"
+        self.optimization_variable = pressure_coefficient
         self.standard_deviation = 0.05
         self.virtual_exp_distortion_iteration = 100
-        self.plot = False#True
-        self.save_plot_data = True#False
+        self.plot = False
+        self.save_plot_data = True
+        self.plot_in_parameter_sapce = False
+
+        self.center_data = False
+
+        # self.objective_function = computeACriterion
+        self.objective_function = computeConditionNumber
+
 
     @property
     def kappa(self): return 1.4
@@ -72,7 +98,7 @@ class __dirs__:
     def results(self): return "set_"+str(1)
 
     @property
-    def save_plot_dir(self): return "/home/wgryglas/Desktop/figures_test_diff_variable/figures/naca" #"/home/wgryglas/Documents/studia doktoranckie/seminaria/za2017/figures/naca"
+    def save_plot_dir(self): return "/home/wgryglas/Desktop/figures_naca_condition_number" #"/home/wgryglas/Documents/studia doktoranckie/seminaria/za2017/figures/naca"
 
 
 dirs = __dirs__('/home/wgryglas/AVIO/data/naca0012')
@@ -175,9 +201,17 @@ class __files__:
 
     def plot_reconstruction_result_in_measurement(self, data_name): return dirs.save_plot_dir + os.sep + data_name + os.sep + "reconstructionResult-measurement_positions.csv"
 
+    def plot_reconstruction_lowerCurve(self, data_name): return dirs.save_plot_dir + os.sep + data_name + os.sep + "reconstructionResult-lowerCurve.csv"
+
+    def plot_reconstruction_upperCurve(self, data_name): return dirs.save_plot_dir + os.sep + data_name + os.sep + "reconstructionResult-upperCurve.csv"
+
     def plot_lininterpolation_result(self, data_name): return dirs.save_plot_dir + os.sep + data_name + os.sep + "linInterpResult.csv"
 
     def plot_lininterpolation_result_in_measurement(self, data_name): return dirs.save_plot_dir + os.sep + data_name + os.sep + "linInterpResult-measurement_positions.csv"
+
+    def plot_lininterpolation_lowerCurve(self, data_name): return dirs.save_plot_dir + os.sep + data_name + os.sep + "linInterpResult-lowerCurve.csv"
+
+    def plot_lininterpolation_upperCurve(self, data_name): return dirs.save_plot_dir + os.sep + data_name + os.sep + "linInterpResult-upperCurve.csv"
 
 
 files = __files__()
@@ -216,7 +250,7 @@ class __data_organizer__:
         from bearded_octo_wookie.RED.RedReader import RedTecplotFile
         return RedTecplotFile(path, useCache=par.useCache)
 
-    def load_modes(self):
+    def load_modes(self, numberOfModesToLoad = np.inf):
         """
         Generator providing modes as tecplot loaded file
         :return: generator
@@ -224,6 +258,8 @@ class __data_organizer__:
         from bearded_octo_wookie.RED.RedReader import RedTecplotFile
         for i, fpath in files.modes_stored:
             yield RedTecplotFile(fpath, useCache=par.useCache)
+            if i+1 >= numberOfModesToLoad:
+                return
 
     def load_mode(self, modeNumber):
         from bearded_octo_wookie.RED.RedReader import RedTecplotFile
@@ -233,9 +269,9 @@ class __data_organizer__:
                 return RedTecplotFile(fpath, useCache=par.useCache)
         return None
 
-    def clear_cache(self, direcotry):
+    def clear_cache(self, directory):
         from glob import glob1
-        toRemove = [direcotry + os.sep + name.split(".")[0]+"cache.npy" for name in glob1(direcotry)]
+        toRemove = [directory + os.sep + name for name in glob1(directory, "*.cache.npz")]
         map(os.remove, toRemove)
 
     def clear_computed_data(self):
@@ -266,6 +302,10 @@ class __data_organizer__:
         red = self.load_red_file(files.virtual_experiment_data_files[0])
         from scipy.spatial import cKDTree
         return cKDTree(red.data[:,:2])
+
+    def load_virtual_exp_data(self):
+        for f in files.virtual_experiment_data_files:
+            yield self.load_red_file(f)
 
     def load_experiment_data(self, filterFun=None):
         """
@@ -401,10 +441,10 @@ def run_modules(*modules):
     :return: none
     """
     # decide if user provided list or var. num. of argunments
-    if len(modules) == 1:
-        module_list = modules[0]
-    else:
+    if hasattr(modules, "__iter__"):
         module_list = modules
+    else:
+        module_list = [modules]
 
     for module in module_list:
         if hasattr(module, "__call__"):

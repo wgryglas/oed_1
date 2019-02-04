@@ -13,13 +13,13 @@ def perform(dirs, files, par, organizer):
 
     for f in files.red_converged_results:
 
-            f_data = RedTecplotFile(f, useCache=True)
+            f_data = RedTecplotFile(f, useCache=False)
 
             if f_data.variables[0] == "X" and f_data.variables[-1]=="mach_iso":
-                print "ommiting "+f
+                print "ommiting", f
                 continue
 
-            print "processing "+f
+            print "processing", f
 
             renameAddPressureMach(f_data, par.kappa, p_inf)
 

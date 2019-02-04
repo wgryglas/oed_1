@@ -3,6 +3,7 @@
 def perform(dirs, files, par, organizer):
     from bearded_octo_wookie.RED import POD
     from wg.tools.system import clear_dir
+    import numpy as np
 
     idata = [d for d in organizer.load_selected_red_data()]
 
@@ -10,7 +11,7 @@ def perform(dirs, files, par, organizer):
     if len(idata) < nmodes:
         nmodes = len(idata)
 
-    podmodes = POD.Modes(idata, num_modes=nmodes, appendAsVariables=False)
+    podmodes = POD.Modes(idata, num_modes=nmodes, appendAsVariables=False, center_data=par.center_data)
 
     clear_dir(dirs.modes)
 
